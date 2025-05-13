@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IMAT - Interpretable Models Analysis Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #5a5a5a;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="file"],
+        input[type="text"],
+        select {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input[disabled],
+        select[disabled] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        .form-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+        }
+        button.clear {
+            background-color: #dc3545;
+        }
+        button.clear:hover {
+            background-color: #c82333;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .dropdown-content {
+            display: none;
+            max-width: 100%;
+        }
+        .dropdown-content img {
+            max-width: 100%;
+            margin: 10px 0;
+        }
+        .dropdown-content img:hover {
+            opacity: 0.7;
+            cursor: pointer;
+        }
+        .disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .loading img {
+            width: 50px;
+            height: 50px;
+        }
+        .language-switch {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .language-switch select {
+            width: 150px;
+            padding: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-grid > div {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-switch">
+            <select id="language-switch">
+                <option value="en">English</option>
+                <option value="pt">Português</option>
+            </select>
+        </div>
+        <h1 id="title">IMAT - Interpretable Models Analysis Tool</h1>
+        <p id="description">This application allows you to analyze data using a Multilayer Perceptron (MLP) by uploading a CSV file, selecting model parameters, and visualizing the decision process.</p>
+        <ol id="instructions">
+            <li>Upload your CSV file containing data.</li>
+            <li>Select the model parameters and the number of layers.</li>
+            <li>Enter the name of the variable you want to predict.</li>
+            <li>Click "Upload" to train the model and visualize the decision process flowchart.</li>
+        </ol>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="file" id="label-file">Select CSV file:</label>
+            <input type="file" name="file" id="file" required>
+            <div class="form-grid">
+                <div>
+                    <label for="layers" id="label-layers">Layers (comma-separated values):</label>
+                    <input type="text" name="layers" id="layers" placeholder="64,64" required pattern="^(\d+)(,\d+)*$">
+                    <label for="activation" id="label-activation">Activation function:</label>
+                    <select name="activation" id="activation" required>
+                        <option value="relu">ReLU</option>
+                        <option value="sigmoid">Sigmoid</option>
+                        <option value="tanh">Tanh</option>
+                    </select>
+                    <label for="optimizer" id="label-optimizer">Optimizer:</label>
+                    <select name="optimizer" id="optimizer" required>
+                        <option value="adam">Adam</option>
+                        <option value="rmsprop">RMSprop</option>
+                    </select>
+                    <label for="loss" id="label-loss">Loss function:</label>
+                    <select name="loss" id="loss" required>
+                        <option value="mse">MSE</option>
+                        <option value="mae">MAE</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="epochs" id="label-epochs">Epochs:</label>
+                    <input type="text" name="epochs" id="epochs" placeholder="10" required pattern="\d*">
+                    <label for="batch_size" id="label-batch_size">Batch size:</label>
+                    <input type="text" name="batch_size" id="batch_size" placeholder="32" required pattern="\d*">
+                    <label for="seed" id="label-seed">Random Seed:</label>
+                    <input type="text" name="seed" id="seed" placeholder="42" pattern="\d*">
+                    <label for="target_variable" id="label-target_variable">Target Variable:</label>
+                    <input type="text" name="target_variable" id="target_variable" required>
+                </div>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" id="upload-button">Upload</button>
+                <button type="button" class="clear" onclick="clearForm()">Clear</button>
+            </div>
+        </form>
+        <div id="results" style="display: none;">
+            <div id="metrics">
+                <p id="mae"></p>
+                <p id="mse"></p>
+                <p id="rmse"></p>
+                <p id="r2"></p>
+            </div>
+            <div class="buttons">
+                <button id="summarizedButton" onclick="toggleDropdown('summarized-content')">Summarized Flowchart</button>
+                <button id="detailedButton" onclick="toggleDropdown('detailed-content')">Detailed Flowchart</button>
+            </div>
+            <div id="summarized-content" class="dropdown-content">
+                <img id="summarized" src="" alt="Summarized Flowchart" onclick="openInNewTab(this.src)">
+                <button id="downloadSummarized">Download Summarized</button>
+            </div>
+            <div id="detailed-content" class="dropdown-content">
+                <img id="detailed" src="" alt="Detailed Flowchart" onclick="openInNewTab(this.src)">
+                <button id="downloadDetailed">Download Detailed</button>
+            </div>
+        </div>
+        <div id="loading" class="loading">
+            <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading...">
+        </div>
+    </div>
+    <script>
+        const languageContent = {
+            en: {
+                title: "IMAT - Interpretable Models Analysis Tool",
+                subtitle: "A Tool for Interpretable Machine Learning Model Analysis focused in Software Aging",
+                description: "This application allows you to analyze data using a Multilayer Perceptron (MLP) by uploading a CSV file, selecting model parameters, and visualizing the decision process.",
+                instructions: [
+                    "Upload your CSV file containing data.",
+                    "Select the model parameters and the number of layers.",
+                    "Enter the name of the variable you want to predict.",
+                    "Click 'Upload' to train the model and visualize the decision process flowchart."
+                ],
+                labels: {
+                    file: "Select CSV file:",
+                    layers: "Layers (comma-separated values):",
+                    activation: "Activation function:",
+                    optimizer: "Optimizer:",
+                    loss: "Loss function:",
+                    epochs: "Epochs:",
+                    batch_size: "Batch size:",
+                    seed: "Random Seed:",
+                    target_variable: "Target Variable:"
+                },
+                buttons: {
+                    upload: "Upload",
+                    clear: "Clear",
+                    summarized: "Summarized Flowchart",
+                    detailed: "Detailed Flowchart",
+                    downloadSummarized: "Download Summarized",
+                    downloadDetailed: "Download Detailed"
+                }
+            },
+            pt: {
+                title: "IMAT - Interpretable Models Analysis Tool",
+                subtitle: "Uma Ferramenta para Análise de Modelos de Machine Learning Interpretáveis com foco em Envelhecimento de Software",
+                description: "Esta aplicação permite analisar dados utilizando um Perceptron Multicamadas (MLP) através do upload de um arquivo CSV, seleção de parâmetros do modelo e visualização do processo de decisão.",
+                instructions: [
+                    "Faça upload do seu arquivo CSV contendo dados.",
+                    "Selecione os parâmetros do modelo e o número de camadas.",
+                    "Insira o nome da variável que deseja prever.",
+                    "Clique em 'Upload' para treinar o modelo e visualizar o fluxograma do processo de decisão."
+                ],
+                labels: {
+                    file: "Selecione o arquivo CSV:",
+                    layers: "Camadas (valores separados por vírgula):",
+                    activation: "Função de ativação:",
+                    optimizer: "Otimizador:",
+                    loss: "Função de perda:",
+                    epochs: "Épocas:",
+                    batch_size: "Tamanho do lote:",
+                    seed: "Semente Aleatória:",
+                    target_variable: "Variável Alvo:"
+                },
+                buttons: {
+                    upload: "Enviar",
+                    clear: "Limpar",
+                    summarized: "Fluxograma Resumido",
+                    detailed: "Fluxograma Detalhado",
+                    downloadSummarized: "Baixar Resumido",
+                    downloadDetailed: "Baixar Detalhado"
+                }
+            }
+        };
+
+        document.getElementById('language-switch').addEventListener('change', (event) => {
+            const language = event.target.value;
+            updateLanguage(language);
+        });
+
+        function updateLanguage(language) {
+            document.getElementById('title').innerText = languageContent[language].title;
+            document.getElementById('subtitle').innerText = languageContent[language].subtitle;
+            document.getElementById('description').innerText = languageContent[language].description;
+            const instructions = document.getElementById('instructions').children;
+            languageContent[language].instructions.forEach((instruction, index) => {
+                instructions[index].innerText = instruction;
+            });
+            document.getElementById('label-file').innerText = languageContent[language].labels.file;
+            document.getElementById('label-layers').innerText = languageContent[language].labels.layers;
+            document.getElementById('label-activation').innerText = languageContent[language].labels.activation;
+            document.getElementById('label-optimizer').innerText = languageContent[language].labels.optimizer;
+            document.getElementById('label-loss').innerText = languageContent[language].labels.loss;
+            document.getElementById('label-epochs').innerText = languageContent[language].labels.epochs;
+            document.getElementById('label-batch_size').innerText = languageContent[language].labels.batch_size;
+            document.getElementById('label-seed').innerText = languageContent[language].labels.seed;
+            document.getElementById('label-target_variable').innerText = languageContent[language].labels.target_variable;
+            document.getElementById('upload-button').innerText = languageContent[language].buttons.upload;
+            document.querySelector('button.clear').innerText = languageContent[language].buttons.clear;
+            document.getElementById('summarizedButton').innerText = languageContent[language].buttons.summarized;
+            document.getElementById('detailedButton').innerText = languageContent[language].buttons.detailed;
+            document.getElementById('downloadSummarized').innerText = languageContent[language].buttons.downloadSummarized;
+            document.getElementById('downloadDetailed').innerText = languageContent[language].buttons.downloadDetailed;
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('file', document.getElementById('file').files[0]);
+            formData.append('layers', document.getElementById('layers').value);
+            formData.append('activation', document.getElementById('activation').value);
+            formData.append('optimizer', document.getElementById('optimizer').value);
+            formData.append('loss', document.getElementById('loss').value);
+            formData.append('epochs', document.getElementById('epochs').value);
+            formData.append('batch_size', document.getElementById('batch_size').value);
+            formData.append('seed', document.getElementById('seed').value);
+            formData.append('language', document.getElementById('language-switch').value);
+            formData.append('target_variable', document.getElementById('target_variable').value);
+
+            // Disable all inputs and buttons
+            disableElements(true);
+            clearResults();
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                const response = await fetch('http://127.0.0.1:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                const summarizedImg = document.getElementById('summarized');
+                const detailedImg = document.getElementById('detailed');
+                summarizedImg.src = `data:image/png;base64,${data.summarized}`;
+                detailedImg.src = `data:image/png;base64,${data.detailed}`;
+                document.getElementById('mae').innerText = `Mean Absolute Error (MAE): ${data.mae.toFixed(2)}`;
+                document.getElementById('mse').innerText = `Mean Squared Error (MSE): ${data.mse.toFixed(2)}`;
+                document.getElementById('rmse').innerText = `Root Mean Squared Error (RMSE): ${data.rmse.toFixed(2)}`;
+                document.getElementById('r2').innerText = `R^2 Score: ${data.r2.toFixed(2)}`;
+                document.getElementById('results').style.display = 'block';
+                toggleDropdown('summarized-content'); // Default to summarized view
+                document.getElementById('downloadSummarized').addEventListener('click', () => downloadImage(data.summarized, 'summarized_flowchart.png'));
+                document.getElementById('downloadDetailed').addEventListener('click', () => downloadImage(data.detailed, 'detailed_flowchart.png'));
+
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                // Enable all inputs and buttons
+                disableElements(false);
+            }
+        });
+
+        function toggleDropdown(id) {
+            const summarizedButton = document.getElementById('summarizedButton');
+            const detailedButton = document.getElementById('detailedButton');
+            const summarizedContent = document.getElementById('summarized-content');
+            const detailedContent = document.getElementById('detailed-content');
+            
+            if (id === 'summarized-content') {
+                summarizedButton.classList.add('disabled');
+                detailedButton.classList.remove('disabled');
+                summarizedContent.style.display = 'block';
+                detailedContent.style.display = 'none';
+            } else {
+                summarizedButton.classList.remove('disabled');
+                detailedButton.classList.add('disabled');
+                summarizedContent.style.display = 'none';
+                detailedContent.style.display = 'block';
+            }
+        }
+
+        function openInNewTab(src) {
+            const newWindow = window.open();
+            newWindow.document.write(`<img src="${src}" style="max-width:100%">`);
+        }
+
+        function downloadImage(base64, filename) {
+            const link = document.createElement('a');
+            link.href = `data:image/png;base64,${base64}`;
+            link.download = filename;
+            link.click();
+        }
+
+        function clearForm() {
+            document.getElementById('uploadForm').reset();
+            clearResults();
+        }
+
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('summarized').src = '';
+            document.getElementById('detailed').src = '';
+        }
+
+        function disableElements(disable) {
+            const elements = document.querySelectorAll('input, select, button');
+            elements.forEach(element => {
+                element.disabled = disable;
+            });
+        }
+
+        document.getElementById('epochs').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        document.getElementById('batch_size').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        document.getElementById('layers').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9,]/g, '');
+        });
+    </script>
+</body>
+</html>
