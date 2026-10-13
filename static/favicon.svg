@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
+  <title id="title">IMAT</title>
+  <desc id="description">Prisma abstrato aberto em três faces, representando um modelo decomposto para análise.</desc>
+  <defs>
+    <linearGradient id="background" x1="10" y1="6" x2="55" y2="59" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123D2E"/>
+      <stop offset="1" stop-color="#08743F"/>
+    </linearGradient>
+    <linearGradient id="top-face" x1="21" y1="13" x2="41" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DDF7E5"/>
+    </linearGradient>
+    <linearGradient id="left-face" x1="13" y1="28" x2="31" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C8F1D4"/>
+      <stop offset="1" stop-color="#80D79B"/>
+    </linearGradient>
+    <linearGradient id="right-face" x1="35" y1="34" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6CD28B"/>
+      <stop offset="1" stop-color="#31AE62"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#background)"/>
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="14.25" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1.5"/>
+  <path d="M32 10.5 52.5 22.25 32 34 11.5 22.25 32 10.5Z" fill="url(#top-face)"/>
+  <path d="M11.5 26 29.5 36.25 29.5 56 11.5 45.75V26Z" fill="url(#left-face)"/>
+  <path d="M34.5 36.25 52.5 26 52.5 45.75 34.5 56V36.25Z" fill="url(#right-face)"/>
+</svg>

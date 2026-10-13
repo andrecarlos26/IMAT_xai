@@ -21,8 +21,8 @@ def create_flowchart(model,
     dot = graphviz.Digraph(comment='MLP Decision Process')
     dot.graph_attr.update({
         'rankdir': 'LR',
-        'dpi': '999',
-        'size': '12,8',
+        'dpi': '1999',
+        'size': '13,8',
         'nodesep': '1.0',
         'ranksep': '1.2'
     })
@@ -108,10 +108,10 @@ def create_flowchart(model,
 
     # Metrics node
     stats = compute_metrics
-    dot.node('Stats',
-             f'Model Metrics\nMean Squared Error (MSE): {mse:.8f}',
-             shape='box', style='filled', fillcolor='yellow')
-    dot.edge('Output', 'Stats', label='Model Confidence')
+#    dot.node('Stats',
+#             f'Model Metrics\nMean Squared Error (MSE): {mse:.8f}',
+#             shape='box', style='filled', fillcolor='yellow')
+#    dot.edge('Output', 'Stats', label='Model Confidence')
     if return_info:
         info += [
             f"Node [Stats]: MSE {mse:.8f} (box, yellow)",

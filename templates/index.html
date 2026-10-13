@@ -1,0 +1,4615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMAT</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}?v=2" sizes="16x16 32x32 48x48 64x64" />
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}?v=2" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=2" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}?v=2" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f4f4;
+      --panel: #ffffff;
+      --text: #333;
+      --muted: #666;
+      --border: #dcdcdc;
+      --primary: #28a745;
+      --primary-hover: #218838;
+      --danger: #dc3545;
+      --danger-hover: #c82333;
+      --tab-bg: #f2f5f3;
+      --soft: #fafafa;
+      --shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 32px auto 50px;
+      padding: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      position: relative;
+      border-radius: 12px;
+    }
+
+    h1, h2, h3 {
+      color: #5a5a5a;
+      margin-top: 0;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    p {
+      line-height: 1.55;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    select,
+    textarea {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      font: inherit;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    input[disabled],
+    select[disabled],
+    textarea[disabled] {
+      background: #e9ecef;
+      cursor: not-allowed;
+    }
+
+    .form-buttons,
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      transition: background 0.2s ease, opacity 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      background: #d3d3d3;
+      cursor: not-allowed;
+    }
+
+    button.clear {
+      background: var(--danger);
+    }
+
+    button.clear:hover {
+      background: var(--danger-hover);
+    }
+
+    .dropdown-content {
+      display: none;
+      max-width: 100%;
+    }
+
+    .dropdown-content img {
+      max-width: 100%;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .dropdown-content img:hover {
+      opacity: 0.88;
+      cursor: pointer;
+    }
+
+    .disabled {
+      background: #d3d3d3;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+      padding: 18px 0 6px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #d9d9d9;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .training-modal,
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.68);
+      backdrop-filter: blur(2px);
+    }
+
+    .training-modal.is-visible,
+    .app-modal.is-visible {
+      display: flex;
+    }
+
+    .training-modal-card {
+      width: min(500px, 100%);
+      padding: 34px 28px;
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+
+    .training-modal-text {
+      margin: 0;
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .training-progress-track {
+      width: 100%;
+      height: 14px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5e8e6;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .training-progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #218838, #37bd59);
+      transition: width 0.35s ease;
+    }
+
+    .training-progress-bar.is-failed {
+      background: var(--danger);
+    }
+
+    .training-progress-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .training-progress-percent {
+      color: #1f6d35;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .training-progress-detail,
+    .training-progress-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .training-progress-note {
+      padding-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+
+    .dialog-card {
+      width: min(470px, 100%);
+      padding: 26px;
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    }
+
+    .dialog-title {
+      margin: 0 0 10px;
+      color: #3f3f3f;
+      font-size: 1.2rem;
+      text-align: left;
+    }
+
+    .dialog-message {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .dialog-actions .secondary-action {
+      border: 1px solid #b9c2bc;
+      background: #fff;
+      color: #334239;
+    }
+
+    .dialog-actions .secondary-action:hover {
+      background: #f1f4f2;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .language-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .language-switch select {
+      width: 180px;
+      padding: 8px;
+      margin: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-grid > div {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field-help {
+      display: block;
+      margin-top: -6px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .dataset-file-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 8px 0 14px;
+      padding: 14px 16px;
+      border: 1px solid #cfe3d4;
+      border-radius: 12px;
+      background: #f6fbf7;
+    }
+
+    .dataset-file-card[hidden],
+    .dataset-preview-panel[hidden],
+    .dataset-action-button[hidden] {
+      display: none !important;
+    }
+
+    .dataset-file-summary {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dataset-file-type-icon {
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #dff1e4;
+      color: #226b36;
+    }
+
+    .dataset-file-type-icon svg {
+      width: 23px;
+      height: 23px;
+      fill: currentColor;
+    }
+
+    .dataset-file-copy {
+      min-width: 0;
+    }
+
+    .dataset-file-name {
+      display: block;
+      overflow: hidden;
+      color: #26372b;
+      font-size: 0.98rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dataset-file-meta {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .dataset-file-actions {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dataset-action-button {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid #b9d7c1;
+      background: #fff;
+      color: #226b36;
+      font-weight: 700;
+    }
+
+    .dataset-action-button:hover,
+    .dataset-action-button:focus-visible {
+      border-color: #72b483;
+      background: #eaf6ed;
+      color: #174d28;
+      outline: 3px solid rgba(40, 167, 69, 0.14);
+    }
+
+    .dataset-action-button svg {
+      width: 19px;
+      height: 19px;
+      fill: currentColor;
+    }
+
+    .dataset-download-button {
+      width: 42px;
+      padding: 9px;
+    }
+
+    .dataset-preview-panel {
+      margin: 4px 0 20px;
+      padding: 18px;
+      border: 1px solid #d7e3da;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(40, 72, 49, 0.08);
+    }
+
+    .dataset-preview-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .dataset-preview-header h3 {
+      margin: 0 0 4px;
+      color: #35463a;
+      font-size: 1.08rem;
+    }
+
+    .dataset-preview-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .dataset-preview-close {
+      flex: 0 0 auto;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid #d4ddd6;
+      background: #fff;
+      color: #4d5b51;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .dataset-preview-close:hover,
+    .dataset-preview-close:focus-visible {
+      background: #f0f4f1;
+      color: #26372b;
+    }
+
+    .dataset-preview-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dataset-preview-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef4f0;
+      color: #405348;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .dataset-target-summary {
+      background: #e3f4e8;
+      color: #1d6532;
+    }
+
+    .dataset-target-summary[data-empty="true"] {
+      background: #fff3d2;
+      color: #745400;
+    }
+
+    .dataset-table-wrap {
+      max-height: 430px;
+      overflow: auto;
+      border: 1px solid #d8ded9;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .dataset-preview-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.86rem;
+    }
+
+    .dataset-preview-table th,
+    .dataset-preview-table td {
+      max-width: 280px;
+      padding: 9px 11px;
+      border-right: 1px solid #e1e5e2;
+      border-bottom: 1px solid #e1e5e2;
+      color: #334239;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    .dataset-preview-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 0;
+      background: #f2f6f3;
+    }
+
+    .dataset-preview-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .dataset-preview-table th:last-child,
+    .dataset-preview-table td:last-child {
+      border-right: none;
+    }
+
+    .dataset-preview-table td.is-target-column {
+      background: #f0faf3;
+      box-shadow: inset 2px 0 #8bc69a, inset -2px 0 #8bc69a;
+    }
+
+    .dataset-row-number {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      min-width: 46px;
+      background: #f8faf8;
+      color: #68736b !important;
+      text-align: center !important;
+      font-weight: 700;
+    }
+
+    .dataset-preview-table thead .dataset-row-number {
+      z-index: 3;
+      padding: 11px;
+      background: #eaf0ec;
+    }
+
+    .dataset-target-column-button {
+      width: 100%;
+      min-width: 150px;
+      display: flex;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 3px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: #2e4435;
+      text-align: left;
+    }
+
+    .dataset-target-column-button:hover,
+    .dataset-target-column-button:focus-visible {
+      background: #e4f2e8;
+      color: #174d28;
+      outline: 2px solid #72b483;
+      outline-offset: -2px;
+    }
+
+    .dataset-target-column-button.is-selected {
+      background: #d8efdf;
+      color: #155a29;
+    }
+
+    .dataset-column-name {
+      max-width: 240px;
+      overflow: hidden;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dataset-column-action {
+      color: #5f7064;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .dataset-target-column-button.is-selected .dataset-column-action {
+      color: #155a29;
+    }
+
+    .dataset-preview-message {
+      margin: 10px 0 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f7f8f7;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .dataset-preview-message.is-error {
+      background: #fff0f1;
+      color: #9e2632;
+    }
+
+    .dataset-preview-message.is-info {
+      background: #eef6ff;
+      color: #285b84;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .browser-help-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid #cfe3d4;
+      border-radius: 50%;
+      background: #f2f8f4;
+      color: #236b37;
+    }
+
+    .browser-help-button:hover,
+    .browser-help-button:focus-visible {
+      background: #e4f2e8;
+      color: #174d28;
+      outline: 3px solid rgba(40, 167, 69, 0.18);
+    }
+
+    .browser-help-button svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+      margin-top: -6px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin: 18px 0 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      background: var(--tab-bg);
+      color: #24442e;
+      border: 1px solid #cfe3d4;
+    }
+
+    .tab-button:hover {
+      background: #e8f3eb;
+    }
+
+    .tab-button.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .tab-section {
+      display: none;
+    }
+
+    .tab-section.active {
+      display: block;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .about-card {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .about-card ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      line-height: 1.55;
+    }
+
+    .about-lead {
+      background: #f7fbf8;
+      border: 1px solid #dce9e0;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .choice-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 12px;
+    }
+
+    .button-only-select {
+      display: none;
+    }
+
+    #ex_prompt.button-only-select {
+      display: block;
+      margin-top: 12px;
+    }
+
+    #ex_prompt-option-chips {
+      display: none !important;
+    }
+
+    .choice-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #f2f2f2;
+      border: 1px solid #dedede;
+      color: #444;
+      font-size: 0.95rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    }
+
+    .choice-chip:hover,
+    .choice-chip:focus-visible {
+      background: #ebf6ee;
+      border-color: #bddfc5;
+      outline: none;
+    }
+
+    .choice-chip.active {
+      background: #e8f5ec;
+      border-color: #b8dbbf;
+      color: #1d5e2d;
+      font-weight: 700;
+    }
+
+    .label-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .tooltip-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #eef3ef;
+      color: #2f5b3a;
+      border: 1px solid #cdddce;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      font-weight: 700;
+      user-select: none;
+      padding: 0;
+      flex: 0 0 auto;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .tooltip-badge:hover,
+    .tooltip-badge:focus-visible,
+    .tooltip-badge.open {
+      background: #dff0e4;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+      outline: none;
+    }
+
+    .tooltip-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 240px;
+      max-width: 340px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d7e5da;
+      background: #ffffff;
+      color: #3b3b3b;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      z-index: 20;
+    }
+
+    .tooltip-popover[hidden] {
+      display: none;
+    }
+
+    .section-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: #fff;
+      margin-bottom: 18px;
+    }
+
+    .explain-select {
+      margin-bottom: 12px;
+    }
+
+    .data-split-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 18px;
+      padding: 13px 15px;
+      border: 1px solid #cfe3d4;
+      border-radius: 11px;
+      background: #f3faf5;
+      color: #284b32;
+      font-size: 0.94rem;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .data-split-visual {
+      display: flex;
+      width: 52px;
+      min-width: 52px;
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(31, 93, 51, 0.2);
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(31, 93, 51, 0.08);
+    }
+
+    .data-split-visual span:nth-child(1) {
+      flex: 3;
+      background: #2f9e55;
+    }
+
+    .data-split-visual span:nth-child(2) {
+      flex: 1;
+      background: #78c78c;
+    }
+
+    .data-split-visual span:nth-child(3) {
+      flex: 1;
+      background: #b9dfc3;
+    }
+
+    #metrics {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+
+    #metrics p {
+      margin: 6px 0;
+    }
+
+    #explainability-container {
+      margin: 20px 0;
+    }
+
+    .explainability-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .explainability-card,
+    .explainability-inline-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    .explainability-card h3,
+    .explainability-inline-card h3 {
+      margin: 0 0 8px;
+      color: #1f5d33;
+      font-size: 1rem;
+    }
+
+    .explainability-card p,
+    .explainability-inline-card p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .explainability-card img,
+    .explainability-inline-card img {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .explainability-summary {
+      margin: 8px 0 0 18px;
+      padding: 0;
+      font-size: 0.88rem;
+      color: #39423c;
+    }
+
+    .explainability-summary li {
+      margin-bottom: 4px;
+    }
+
+    .interactive-explanation {
+      display: block;
+    }
+
+    .interactive-explanation > :first-child {
+      margin-top: 0;
+    }
+
+    .interactive-explanation > :last-child {
+      margin-bottom: 0;
+    }
+
+    .explanation-text-block {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .graph-reference-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: -4px 0 16px;
+      padding: 9px 11px;
+      border: 1px solid #dcebdd;
+      border-radius: 10px;
+      background: #f7fbf8;
+    }
+
+    .graph-reference-label {
+      color: #526056;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-right: 2px;
+    }
+
+    .graph-toggle {
+      border: 1px solid #b9d9c1;
+      background: #ffffff;
+      color: #1f5d33;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .graph-toggle:hover,
+    .graph-toggle:focus-visible,
+    .graph-toggle[aria-expanded="true"] {
+      background: #e8f7ec;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .explainability-inline-panel {
+      display: none;
+      margin: -6px 0 18px;
+      animation: panelFadeIn 0.18s ease-in-out;
+    }
+
+    .explainability-inline-panel.is-open {
+      display: block;
+    }
+
+    .explainability-inline-card {
+      background: linear-gradient(180deg, #ffffff 0%, #fbfffc 100%);
+      border-color: #d6e8da;
+    }
+
+    .explainability-inline-card .card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .secondary-small-button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #1f5d33;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .secondary-small-button:hover,
+    .secondary-small-button:focus-visible {
+      background: var(--soft);
+      outline: none;
+    }
+
+    .graph-gallery-title {
+      margin: 6px 0 0;
+      font-size: 1rem;
+      color: #1f5d33;
+    }
+
+    .graph-gallery-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @keyframes panelFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+    .explanation-mode-shell {
+      margin-top: 10px;
+      border: 1px solid #dfe5e1;
+      border-radius: 14px;
+      background: #f8fbf9;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    .explanation-mode-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e3ece5;
+    }
+
+    .explanation-mode-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 220px;
+    }
+
+    .explanation-mode-title {
+      color: #1f5d33;
+      font-weight: 800;
+      font-size: 0.98rem;
+    }
+
+    .explanation-mode-note {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .explanation-mode-switch {
+      display: inline-flex;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 999px;
+      border: 1px solid #cfe3d4;
+      background: #ffffff;
+    }
+
+    .explanation-mode-button {
+      border: 0;
+      background: transparent;
+      color: #30583b;
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .explanation-mode-button:hover,
+    .explanation-mode-button:focus-visible {
+      background: #eef8f1;
+      outline: none;
+    }
+
+    .explanation-mode-button.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.22);
+    }
+
+    .explanation-panel[hidden] {
+      display: none !important;
+    }
+
+    #short-explanation {
+      background: #ffffff;
+      padding: 20px 22px;
+      border-radius: 12px;
+      border: 1px solid #dfe5e1;
+      line-height: 1.65;
+      font-size: 1rem;
+      color: #2f3630;
+    }
+
+    #short-explanation .short-explanation-kicker {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #eef8f1;
+      color: #1f5d33;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .short-topic-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .short-topic {
+      margin: 0;
+      padding: 12px 14px;
+      border: 1px solid #edf2ee;
+      border-radius: 10px;
+      background: #fbfdfb;
+    }
+
+    .short-topic strong {
+      color: #204d2d;
+      font-weight: 800;
+    }
+
+    #short-explanation p {
+      margin: 0;
+    }
+
+
+    #explanation {
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcfb 100%);
+      padding: 22px;
+      border-radius: 12px;
+      border: 1px solid #dfe5e1;
+      line-height: 1.7;
+      font-size: 15px;
+      color: #2f3630;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    #explanation:empty {
+      display: none;
+    }
+
+    #explanation h3,
+    #explanation h4 {
+      margin: 0 0 12px;
+      color: #1f5d33;
+      line-height: 1.3;
+    }
+
+    #explanation h3 {
+      font-size: 1.08rem;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e7ede8;
+    }
+
+    #explanation h4 {
+      font-size: 0.98rem;
+      margin-top: 20px;
+    }
+
+    #explanation p {
+      margin: 0 0 14px;
+    }
+
+    #explanation p + h4,
+    #explanation ul + h4,
+    #explanation ol + h4 {
+      margin-top: 22px;
+    }
+
+    #explanation ul,
+    #explanation ol {
+      margin: 0 0 16px 20px;
+      padding: 0;
+    }
+
+    #explanation li {
+      margin: 0 0 8px;
+    }
+
+    #explanation strong {
+      color: #204d2d;
+    }
+
+    #explanation .exp-block + .exp-block {
+      margin-top: 18px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid,
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-buttons,
+      .buttons,
+      .tabs {
+        flex-direction: column;
+      }
+
+      .tab-button {
+        width: 100%;
+      }
+
+      .dataset-file-card,
+      .dataset-preview-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .dataset-file-actions {
+        width: 100%;
+      }
+
+      .dataset-preview-button {
+        flex: 1;
+      }
+
+      .dataset-preview-close {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="language-switch">
+          <label for="language-switch" id="label-language">Language:</label>
+          <select id="language-switch">
+            <option value="en" selected>English</option>
+            <option value="pt">Portuguese</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          id="browser-help-button"
+          class="browser-help-button"
+          aria-label="Browser compatibility tip"
+          title="Browser compatibility tip"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M11 17h2v-6h-2v6Zm1-14a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 16.2A7.2 7.2 0 1 1 12 4.8a7.2 7.2 0 0 1 0 14.4ZM11 9h2V7h-2v2Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <h1 id="title">IMAT - Interpretable Model Analysis Tool</h1>
+    <p id="description" class="muted">Envie um CSV, escolha o modelo e visualize o processo de decisão.</p>
+
+    <div class="tabs" role="tablist" aria-label="Main sections">
+      <button type="button" class="tab-button active" id="tab-btn-config" data-tab="config">Configuração</button>
+      <button type="button" class="tab-button" id="tab-btn-about" data-tab="about">Sobre</button>
+    </div>
+
+    <section id="tab-config" class="tab-section active">
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="section-card model-select">
+          <div class="label-wrap">
+            <label for="model-select" id="label-choose-model">Escolha o modelo:</label>
+          </div>
+          <select class="button-only-select" id="model-select">
+            <option value="mlp">MLP</option>
+            <option value="rf">Random Forest (Regressão)</option>
+            <option value="cnn">CNN</option>
+          </select>
+          <div id="model-select-option-chips" class="choice-chip-list"></div>
+          <small id="model_desc" class="field-help"></small>
+        </div>
+
+        <div class="label-wrap">
+          <label for="file" id="label-file">Selecione o arquivo CSV:</label>
+        </div>
+        <input type="file" name="file" id="file" accept=".csv,text/csv" required>
+        <small id="default-dataset-info" class="field-help"></small>
+
+        <div id="dataset-file-card" class="dataset-file-card" hidden>
+          <div class="dataset-file-summary">
+            <span class="dataset-file-type-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm1 3.5L18.5 9H15V5.5ZM8 13h8v2H8v-2Zm0 4h8v2H8v-2Zm0-8h4v2H8V9Z"/>
+              </svg>
+            </span>
+            <span class="dataset-file-copy">
+              <strong id="dataset-file-name" class="dataset-file-name"></strong>
+              <span id="dataset-file-meta" class="dataset-file-meta"></span>
+            </span>
+          </div>
+          <div class="dataset-file-actions">
+            <button type="button" id="dataset-preview-button" class="dataset-action-button dataset-preview-button" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 5v4h5V8H4Zm7 0v4h9V8h-9ZM4 14v5h5v-5H4Zm7 0v5h9v-5h-9Z"/>
+              </svg>
+              <span id="dataset-preview-button-text"></span>
+            </button>
+            <button type="button" id="dataset-download-button" class="dataset-action-button dataset-download-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M11 3h2v10.17l3.59-3.58L18 11l-6 6-6-6 1.41-1.41L11 13.17V3Zm-7 16h16v2H4v-2Z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <section id="dataset-preview-panel" class="dataset-preview-panel" aria-labelledby="dataset-preview-title" hidden>
+          <div class="dataset-preview-header">
+            <div>
+              <h3 id="dataset-preview-title"></h3>
+              <p id="dataset-preview-description" class="dataset-preview-description"></p>
+            </div>
+            <button type="button" id="dataset-preview-close" class="dataset-preview-close" aria-label="Close">&#215;</button>
+          </div>
+          <div class="dataset-preview-summary">
+            <span id="dataset-preview-rows" class="dataset-preview-chip"></span>
+            <span id="dataset-preview-columns" class="dataset-preview-chip"></span>
+            <span id="dataset-target-summary" class="dataset-preview-chip dataset-target-summary" data-empty="true"></span>
+          </div>
+          <div id="dataset-table-wrap" class="dataset-table-wrap">
+            <table id="dataset-preview-table" class="dataset-preview-table"></table>
+          </div>
+          <p id="dataset-preview-message" class="dataset-preview-message" hidden></p>
+        </section>
+
+        <div class="label-wrap">
+          <label for="objective" id="label-objective">O objetivo é:</label>
+        </div>
+        <input id="objective" type="text" list="objective_suggestions" placeholder="ex.: prever o consumo de memória">
+        <datalist id="objective_suggestions"></datalist>
+
+        <div class="section-card explain-select">
+          <div class="label-wrap">
+            <label for="ex_prompt" id="label-explanation-style">Estilo de explicação:</label>
+          </div>
+          <select class="button-only-select" id="ex_prompt">
+            <option value="exec_summary" selected>Executivo – linguagem não técnica</option>
+            <option value="ops_admin">Operacional – ações objetivas</option>
+            <option value="datasci_tech">Data Science – análise técnica</option>
+            <option value="education_student">Instrutivo – passo a passo (aluno)</option>
+            <option value="custom">Estilo próprio (descrever abaixo)</option>
+          </select>
+          <div id="ex_prompt-option-chips" class="choice-chip-list"></div>
+          <small id="ex_prompt_desc" class="field-help"></small>
+
+          <div class="label-wrap" style="margin-top: 10px;">
+            <label for="ex_prompt_custom" id="label-explanation-custom" style="display:none;">Descreva seu estilo (opcional):</label>
+          </div>
+          <textarea
+            id="ex_prompt_custom"
+            placeholder="Ex.: ‘Explique como se fosse para um time de produto: foco em trade-offs, riscos e próximos passos práticos.’"
+            style="display:none;"
+          ></textarea>
+        </div>
+
+        <div class="data-split-info" role="note">
+          <span class="data-split-visual" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span id="data-split-info-text">Os dados são divididos em: treino (60%), validação (20%) e teste (20%)</span>
+        </div>
+
+        <div id="mlp-fields" class="section-card">
+          <div class="form-grid">
+            <div>
+              <div class="label-wrap">
+                <label for="layers" id="label-layers">Camadas (valores separados por vírgula):</label>
+              </div>
+              <input type="text" name="layers" id="layers" placeholder="64,64" pattern="^(\d+)(,\d+)*$">
+
+              <div class="label-wrap">
+                <label for="activation" id="label-activation">Função de ativação:</label>
+              </div>
+              <select class="button-only-select" name="activation" id="activation">
+                <option value="relu">ReLU</option>
+                <option value="sigmoid">Sigmoid</option>
+                <option value="tanh">Tanh</option>
+              </select>
+              <div id="activation-option-chips" class="choice-chip-list"></div>
+
+              <div class="label-wrap">
+                <label for="optimizer" id="label-optimizer">Otimizador:</label>
+              </div>
+              <select class="button-only-select" name="optimizer" id="optimizer">
+                <option value="adam">Adam</option>
+                <option value="rmsprop">RMSprop</option>
+              </select>
+              <div id="optimizer-option-chips" class="choice-chip-list"></div>
+
+              <div class="label-wrap">
+                <label for="loss" id="label-loss">Função de perda:</label>
+              </div>
+              <select class="button-only-select" name="loss" id="loss">
+                <option value="mse">MSE</option>
+                <option value="mae">MAE</option>
+              </select>
+              <div id="loss-option-chips" class="choice-chip-list"></div>
+            </div>
+
+            <div>
+              <div class="label-wrap">
+                <label for="epochs" id="label-epochs">Épocas:</label>
+              </div>
+              <input type="text" name="epochs" id="epochs" placeholder="10" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="batch_size" id="label-batch_size">Tamanho do batch:</label>
+              </div>
+              <input type="text" name="batch_size" id="batch_size" placeholder="32" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="seed_mlp" id="label-seed-mlp">Semente aleatória:</label>
+              </div>
+              <input type="text" name="seed" id="seed_mlp" placeholder="42" pattern="\d*">
+
+              <input type="hidden" id="target_variable_mlp">
+            </div>
+          </div>
+        </div>
+
+        <div id="rf-fields" class="section-card" style="display:none;">
+          <input type="hidden" id="target_variable_rf">
+
+          <div class="label-wrap">
+            <label for="n_estimators" id="label-n_estimators">n_estimators:</label>
+          </div>
+          <input type="text" name="n_estimators" id="n_estimators" placeholder="100" pattern="\d*">
+
+          <div class="label-wrap">
+            <label for="max_depth" id="label-max_depth">max_depth (opcional):</label>
+          </div>
+          <input type="text" name="max_depth" id="max_depth" placeholder="None" pattern="\d*">
+
+          <div class="label-wrap">
+            <label for="seed_rf" id="label-seed-rf">Semente aleatória (opcional):</label>
+          </div>
+          <input type="text" name="seed" id="seed_rf" placeholder="42" pattern="\d*">
+        </div>
+
+        <div id="cnn-fields" class="section-card" style="display:none;">
+          <div class="form-grid">
+            <div>
+              <div class="label-wrap">
+                <label for="cnn_input_type" id="label-cnn-input-type">Tipo de entrada:</label>
+              </div>
+              <select class="button-only-select" id="cnn_input_type">
+                <option value="text" id="opt-cnn-text">Texto (binário)</option>
+                <option value="numeric" id="opt-cnn-numeric">Numérico</option>
+                  <option value="image" id="opt-cnn-image">Imagem (.npz)</option>
+              </select>
+              <div id="cnn_input_type-option-chips" class="choice-chip-list"></div>
+              <small id="cnn_input_type_desc" class="field-help"></small>
+
+              <div id="cnn-text-fields" style="display:none;">
+                <div class="label-wrap">
+                  <label for="text_column" id="label-text-column">Coluna de texto:</label>
+                </div>
+                <input type="text" id="text_column" placeholder="text">
+
+                <input type="hidden" id="target_variable_cnn">
+
+                <div class="label-wrap">
+                  <label for="vocab_size" id="label-vocab_size">Tamanho do vocabulário:</label>
+                </div>
+                <input type="text" id="vocab_size" placeholder="5000" pattern="\d*">
+
+                <div class="label-wrap">
+                  <label for="maxlen" id="label-maxlen">Tamanho máximo:</label>
+                </div>
+                <input type="text" id="maxlen" placeholder="100" pattern="\d*">
+
+                <div class="label-wrap">
+                  <label for="threshold" id="label-threshold">Limite de decisão (0..1):</label>
+                </div>
+                <input type="text" id="threshold" placeholder="0.5" pattern="^(0(\.\d+)?|1(\.0+)?)$">
+              </div>
+
+              <div id="cnn-numeric-fields" style="display:block;">
+                <input type="hidden" id="target_variable_cnn_num">
+
+                <div class="label-wrap">
+                  <label for="cnn_task" id="label-cnn-task">Tarefa:</label>
+                </div>
+                <select class="button-only-select" id="cnn_task">
+                  <option value="regression" id="opt-task-reg">Regressão</option>
+                  <option value="binary" id="opt-task-bin">Classificação binária</option>
+                </select>
+                <div id="cnn_task-option-chips" class="choice-chip-list"></div>
+                <small id="cnn_task_desc" class="field-help"></small>
+
+                <div id="cnn-threshold-wrap" style="display:none;">
+                  <div class="label-wrap">
+                    <label for="threshold_num" id="label-threshold-num">Limite de decisão (0..1):</label>
+                  </div>
+                  <input type="text" id="threshold_num" placeholder="0.5" pattern="^(0(\.\d+)?|1(\.0+)?)$">
+                </div>
+              </div>
+
+              <div id="cnn-image-fields" style="display:none;">
+                <p id="cnn-image-help" class="field-help"></p>
+                <input type="hidden" id="max_train_samples" value="1200">
+                <input type="hidden" id="max_test_samples" value="300">
+              </div>
+            </div>
+
+            <div>
+              <div class="label-wrap">
+                <label for="embed_dim" id="label-embed_dim">Dim. do embedding:</label>
+              </div>
+              <input type="text" id="embed_dim" placeholder="50" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="filters" id="label-filters">Filtros Conv1D:</label>
+              </div>
+              <input type="text" id="filters" placeholder="32" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="kernel_size" id="label-kernel_size">Tamanho do kernel:</label>
+              </div>
+              <input type="text" id="kernel_size" placeholder="3" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="dense_units" id="label-dense_units">Unidades densas:</label>
+              </div>
+              <input type="text" id="dense_units" placeholder="10" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="epochs_cnn" id="label-epochs-cnn">Épocas:</label>
+              </div>
+              <input type="text" id="epochs_cnn" placeholder="1" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="batch_size_cnn" id="label-batch_size-cnn">Tamanho do batch:</label>
+              </div>
+              <input type="text" id="batch_size_cnn" placeholder="16" pattern="\d*">
+
+              <div class="label-wrap">
+                <label for="seed_cnn" id="label-seed-cnn">Semente aleatória:</label>
+              </div>
+              <input type="text" id="seed_cnn" placeholder="42" pattern="\d*">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit" id="upload-button">Run</button>
+          <button type="button" class="clear" id="clear-button" onclick="clearForm()">Limpar</button>
+        </div>
+      </form>
+
+      <div id="results" style="display:none;">
+        <div id="metrics"></div>
+
+        <div id="explainability-container" style="display:none;">
+          <h2 id="heading-explainability">Diagnósticos de explicabilidade</h2>
+          <div id="explainability-grid" class="explainability-grid"></div>
+        </div>
+
+        <!--
+        BLOCO TEMPORARIAMENTE COMENTADO:
+        Botões e exibição dos fluxogramas. Para reativar no futuro, basta descomentar este trecho.
+
+        <div class="buttons">
+          <button id="summarizedButton" type="button" onclick="toggleDropdown('summarized-content')">Fluxograma resumido</button>
+          <button id="detailedButton" type="button" onclick="toggleDropdown('detailed-content')">Fluxograma detalhado</button>
+        </div>
+
+        <div id="summarized-content" class="dropdown-content">
+          <img id="summarized" src="" alt="Fluxograma resumido" onclick="openInNewTab(this.src)">
+          <button id="downloadSummarized" type="button">Baixar resumido</button>
+        </div>
+
+        <div id="detailed-content" class="dropdown-content">
+          <img id="detailed" src="" alt="Fluxograma detalhado" onclick="openInNewTab(this.src)">
+          <button id="downloadDetailed" type="button">Baixar detalhado</button>
+        </div>
+        -->
+
+        <div id="explanation-container" style="display:none; margin-top:20px;">
+          <h2 id="heading-model-explanation">Explicação do modelo</h2>
+          <div class="explanation-mode-shell">
+            <div class="explanation-mode-toolbar" aria-label="Modos de explicação">
+              <div class="explanation-mode-copy">
+                <span id="explanation-mode-title" class="explanation-mode-title">Escolha o modo de explicação</span>
+                <span id="explanation-mode-note" class="explanation-mode-note">A curta é objetiva e sem gráficos; a detalhada usa os diagnósticos como apoio visual.</span>
+              </div>
+              <div class="explanation-mode-switch" role="tablist" aria-label="Modos de explicação">
+                <button id="explanation-mode-short" type="button" class="explanation-mode-button active" role="tab" aria-selected="true" aria-controls="short-explanation" data-explanation-mode="short">Curta</button>
+                <button id="explanation-mode-long" type="button" class="explanation-mode-button" role="tab" aria-selected="false" aria-controls="explanation" data-explanation-mode="long">Detalhada</button>
+              </div>
+            </div>
+            <div id="short-explanation" class="explanation-panel" role="tabpanel" aria-labelledby="explanation-mode-short"></div>
+            <div id="explanation" class="explanation-panel" role="tabpanel" aria-labelledby="explanation-mode-long" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <div id="loading-text">Processando...</div>
+      </div>
+    </section>
+
+    <section id="tab-about" class="tab-section">
+      <div class="about-lead">
+        <h2 id="about-title">Sobre a IMAT</h2>
+        <p id="about-intro"></p>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <h3 id="about-what-title"></h3>
+          <ul id="about-what-list"></ul>
+        </div>
+
+        <div class="about-card">
+          <h3 id="about-models-title"></h3>
+          <ul id="about-models-list"></ul>
+        </div>
+
+        <div class="about-card">
+          <h3 id="about-outputs-title"></h3>
+          <ul id="about-outputs-list"></ul>
+        </div>
+
+        <div class="about-card">
+          <h3 id="about-tips-title"></h3>
+          <ul id="about-tips-list"></ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="training-modal" class="training-modal" role="dialog" aria-modal="true" aria-labelledby="training-modal-text" aria-hidden="true">
+    <div class="training-modal-card">
+      <p id="training-modal-text" class="training-modal-text" aria-live="polite">Preparing the analysis...</p>
+      <div
+        id="training-progress-track"
+        class="training-progress-track"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        aria-labelledby="training-modal-text"
+      >
+        <div id="training-progress-bar" class="training-progress-bar"></div>
+      </div>
+      <div class="training-progress-summary">
+        <span id="training-progress-percent" class="training-progress-percent">0%</span>
+        <span id="training-progress-elapsed">Elapsed time: 00:00</span>
+      </div>
+      <p id="training-progress-detail" class="training-progress-detail"></p>
+      <p id="training-progress-note" class="training-progress-note">Progress advances only when a processing stage or training iteration is completed.</p>
+    </div>
+  </div>
+
+  <div id="language-confirm-modal" class="app-modal" role="dialog" aria-modal="true" aria-labelledby="language-confirm-title" aria-describedby="language-confirm-message" aria-hidden="true">
+    <div class="dialog-card">
+      <h2 id="language-confirm-title" class="dialog-title">Change language?</h2>
+      <p id="language-confirm-message" class="dialog-message"></p>
+      <div class="dialog-actions">
+        <button type="button" id="language-cancel-button" class="secondary-action">Cancel</button>
+        <button type="button" id="language-continue-button">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="browser-tip-modal" class="app-modal" role="dialog" aria-modal="true" aria-labelledby="browser-tip-title" aria-describedby="browser-tip-message" aria-hidden="true">
+    <div class="dialog-card">
+      <h2 id="browser-tip-title" class="dialog-title">Browser compatibility</h2>
+      <p id="browser-tip-message" class="dialog-message"></p>
+      <div class="dialog-actions">
+        <button type="button" id="browser-tip-close-button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const I18N = {
+      en: {
+        htmlLang: 'en',
+        title: 'IMAT - Interpretable Model Analysis Tool',
+        description: 'Upload a dataset, choose the model, and visualize the decision process.',
+        dataSplitInfo: 'The data are divided into: training (60%), validation (20%), and testing (20%).',
+        tabs: {
+          config: 'Configuration',
+          about: 'About'
+        },
+        about: {
+          title: 'About IMAT',
+          intro: 'IMAT helps you upload a dataset, configure a machine learning model, and understand its behavior through metrics, explainability diagnostics, and textual explanations.',
+          whatTitle: 'What the tool does',
+          whatList: [
+            'Loads a dataset and adapts the form according to the selected model.',
+            'Lets you set the objective and explanation style so the final narrative matches the user intent.',
+            'Shows explainability diagnostics together with metrics and a plain-language explanation.'
+          ],
+          modelsTitle: 'Available models',
+          modelsList: [
+            'MLP: dense neural network configured for regression with a numeric target.',
+            'Random Forest: tree ensemble configured for regression with a numeric target.',
+            'CNN: can work with text input for binary classification or numeric input for regression/binary classification.'
+          ],
+          outputsTitle: 'What you get at the end',
+          outputsList: [
+            'Test metrics appropriate for the selected task.',
+            'Explainability diagnostics such as feature importance, confusion matrix, loss curve, reliability diagram, and CNN saliency when applicable.',
+            'A textual explanation aligned with the chosen explanation style.'
+          ],
+          tipsTitle: 'Good practices',
+          tipsList: [
+            'Use a dataset compatible with the selected model and task.',
+            'Choose the target column carefully because it defines what the model will predict.',
+            'Use the tooltips to understand each parameter before running the analysis.'
+          ]
+        },
+        labels: {
+          language: 'Language:',
+          objective: 'Objective:',
+          explanationStyle: 'Explanation style:',
+          explanationCustom: 'Describe your style (optional):',
+          file: 'Select dataset file:',
+          chooseModel: 'Choose model:',
+          layers: 'Layers (comma-separated values):',
+          activation: 'Activation function:',
+          optimizer: 'Optimizer:',
+          loss: 'Loss function:',
+          epochs: 'Epochs:',
+          batch_size: 'Batch size:',
+          seed_mlp: 'Random seed:',
+          n_estimators: 'n_estimators:',
+          max_depth: 'max_depth (optional):',
+          seed_rf: 'Random seed (optional):',
+          cnn_input_type: 'Input type:',
+          text_column: 'Text column:',
+          vocab_size: 'Vocabulary size:',
+          maxlen: 'Maximum length:',
+          threshold: 'Decision threshold (0..1):',
+          cnn_task: 'Task:',
+          threshold_num: 'Decision threshold (0..1):',
+          embed_dim: 'Embedding dim:',
+          filters: 'Conv1D filters:',
+          kernel_size: 'Kernel size:',
+          dense_units: 'Dense units:',
+          epochs_cnn: 'Epochs:',
+          batch_size_cnn: 'Batch size:',
+          seed_cnn: 'Random seed:'
+        },
+        options: {
+          language_en: 'English',
+          language_pt: 'Portuguese',
+          model_mlp: 'MLP',
+          model_rf: 'Random Forest (Regression)',
+          model_cnn: 'CNN',
+          cnn_text: 'Text (binary)',
+          cnn_numeric: 'Numeric',
+          cnn_image: 'Image (.npz)',
+          task_regression: 'Regression',
+          task_binary: 'Binary classification',
+          ex_prompts: {
+            exec_summary: 'Executive – non-technical',
+            ops_admin: 'Operational – actionable',
+            datasci_tech: 'Data Science – technical analysis',
+            education_student: 'Instructive – step by step',
+            custom: 'Custom style (describe below)'
+          }
+        },
+        promptDescs: {
+          exec_summary: 'Clear decision-oriented summary: what the model considered, how reliable it is, and next practical steps.',
+          ops_admin: 'Practical guidance to operate or adjust the model: what to monitor, warning signs, and common fixes.',
+          datasci_tech: 'Technical focus: data, validation, metrics, bias, and modeling improvements.',
+          education_student: 'Didactic and step by step: concepts, stages, and simple examples.',
+          custom: 'Describe the desired tone and style in the field below.'
+        },
+        modelDescs: {
+          mlp: 'Dense neural network for regression with a numeric target.',
+          rf: 'Tree ensemble for regression with a numeric target.',
+          cnn: 'Convolutional network for text, numeric or image classification.'
+        },
+        selectedDescs: {
+          cnn_input_type: {
+            text: 'Text mode expects a text column and a binary target.',
+            numeric: 'Numeric mode expects numeric features and a target compatible with the chosen task.',
+            image: 'Image mode expects a .npz dataset with image arrays and labels, such as the default MNIST-like sample.'
+          },
+          cnn_task: {
+            regression: 'Use it when the output is a continuous numeric value.',
+            binary: 'Use it when the output represents two possible classes.'
+          }
+        },
+        tooltips: {
+          file: 'Upload the dataset used in training and testing. CSV is used for tabular/text data; .npz is used for image data.',
+          objective: 'Describe what you want to analyze, predict, or understand. It guides the final textual explanation.',
+          explanationStyle: 'Defines the tone and format of the final explanation.',
+          explanationCustom: 'Use this field only when "Custom style" is selected to describe tone, detail level, or focus.',
+          chooseModel: 'Choose which model will be used in the analysis.',
+          layers: 'Defines the hidden-layer structure of the MLP using comma-separated neuron counts.',
+          activation: 'Defines the function applied to hidden neurons to introduce non-linearity.',
+          optimizer: 'Defines the algorithm used to update the network weights during training.',
+          loss: 'Defines how training error will be measured.',
+          epochs: 'Defines how many times the model will pass through the full training set.',
+          batch_size: 'Defines how many samples are processed before each weight update.',
+          seed_mlp: 'Controls randomness to make experiments more reproducible.',
+          n_estimators: 'Defines how many trees are created in the forest.',
+          max_depth: 'Optional maximum depth of each tree. Larger depths may overfit; shallow trees may miss patterns.',
+          seed_rf: 'Controls randomness in tree creation for more reproducible runs.',
+          cnn_input_type: 'Defines whether the CNN will process text, numeric or image input and changes the complementary fields.',
+          text_column: 'CSV column that contains the text processed by the CNN.',
+          vocab_size: 'Defines how many distinct tokens the text CNN will consider.',
+          maxlen: 'Defines the maximum tokenized sequence length. Longer texts may be truncated.',
+          threshold: 'Probability cutoff used to convert predicted probability into the final class.',
+          cnn_task: 'Defines whether the numeric CNN solves regression or binary classification.',
+          threshold_num: 'Only relevant for binary classification. It defines the final class cutoff.',
+          embed_dim: 'Defines the size of the internal vector representation used by the CNN, especially for text.',
+          filters: 'Defines how many convolution filters are used to capture local patterns.',
+          kernel_size: 'Defines the sliding-window size observed by each convolution filter.',
+          dense_units: 'Defines the number of neurons in the final dense layer after convolution.',
+          epochs_cnn: 'Defines how many times the CNN will pass through the training data.',
+          batch_size_cnn: 'Defines how many samples are processed before each CNN parameter update.',
+          seed_cnn: 'Controls training randomness and helps reproduce the experiment.'
+        },
+        optionTooltips: {
+          'model-select': {
+            mlp: 'Dense neural network for regression with a numeric target.',
+            rf: 'Robust ensemble of decision trees for regression.',
+            cnn: 'Convolutional model for text classification or numeric prediction.'
+          },
+          ex_prompt: {
+            exec_summary: 'Simple, accessible explanation for non-technical audiences.',
+            ops_admin: 'Practical explanation focused on observations, warnings, and actions.',
+            datasci_tech: 'Technical explanation with more detail about metrics and model behavior.',
+            education_student: 'Step-by-step explanation with a didactic structure.',
+            custom: 'Lets the user describe the desired tone and focus.'
+          },
+          activation: {
+            relu: 'Keeps positive values and zeros negative values.',
+            sigmoid: 'Maps values to a range between 0 and 1.',
+            tanh: 'Maps values to a range between -1 and 1.'
+          },
+          optimizer: {
+            adam: 'Widely used optimizer that combines efficiency and good adaptation.',
+            rmsprop: 'Common optimizer often used in neural-network training.'
+          },
+          loss: {
+            mse: 'Mean squared error. Penalizes larger errors more strongly.',
+            mae: 'Mean absolute error. Measures the average absolute difference.'
+          },
+          cnn_input_type: {
+            text: 'Use when the dataset contains a text column such as messages or descriptions.',
+            numeric: 'Use when the input is composed of numeric columns.',
+            image: 'Use when the input is an image dataset stored as .npz arrays.'
+          },
+          cnn_task: {
+            regression: 'Use when the output is a numeric value.',
+            binary: 'Use when the output represents two classes.'
+          }
+        },
+        placeholders: {
+          objective: 'e.g., Predict memory usage',
+          ex_prompt_custom: 'E.g., “Explain it for a product team: focus on trade-offs, risks, and practical next steps.”'
+        },
+        buttons: {
+          upload: 'Run',
+          clear: 'Clear',
+          summarized: 'Summarized flowchart',
+          detailed: 'Detailed flowchart',
+          downloadSummarized: 'Download summarized',
+          downloadDetailed: 'Download detailed'
+        },
+        headings: {
+          modelExplanation: 'Model explanation',
+          explainability: 'Explainability diagnostics'
+        },
+        explanationModes: {
+          title: 'Choose the explanation mode',
+          note: 'The short version is objective and has no charts; the detailed version uses diagnostics as visual support.',
+          shortButton: 'Short',
+          longButton: 'Detailed',
+          shortKicker: 'Short mode'
+        },
+        explainabilityUI: {
+          viewGraph: 'Open chart',
+          hideGraph: 'Hide chart',
+          openImage: 'Open image',
+          supportLabel: 'Visual support',
+          additionalSupportLabel: 'Additional visual support',
+          complementaryTitle: 'Complementary charts',
+          complementaryNote: 'These diagnostics were generated for the model, but were not directly linked to a specific paragraph.'
+        },
+        metrics: {
+          accuracy: 'Accuracy',
+          precision: 'Precision',
+          recall: 'Recall',
+          f1: 'F1',
+          auc: 'AUC',
+          mae: 'Mean Absolute Error (MAE)',
+          mse: 'Mean Squared Error (MSE)',
+          rmse: 'Root Mean Squared Error (RMSE)',
+          r2: 'R² Score'
+        },
+        alerts: {
+          select_csv: 'Select a dataset file.',
+          select_target: 'Select the target column directly in the dataset preview before running the model.',
+          generic_error: 'An error occurred. Check the server response.'
+        },
+        languageChange: {
+          title: 'Change language?',
+          message: 'Changing the language requires reloading the page. Unsaved form data and current results will be cleared. Would you like to continue?',
+          continue: 'Continue',
+          cancel: 'Cancel'
+        },
+        browserTip: {
+          buttonLabel: 'Browser compatibility tip',
+          title: 'Browser compatibility',
+          message: 'Having trouble using IMAT in this browser? For the best experience, try opening the tool in Mozilla Firefox.',
+          close: 'Close'
+        },
+        progress: {
+          note: 'Progress advances only when a processing stage or training iteration is completed.',
+          elapsed: 'Elapsed time',
+          stages: {
+            starting: 'Starting the analysis...',
+            reading_data: 'Reading and validating the dataset...',
+            preparing_data: 'Preparing data and parameters...',
+            building_model: 'Building the model...',
+            training_epochs: 'Training the model...',
+            training_trees: 'Training the Random Forest...',
+            evaluating: 'Evaluating the trained model...',
+            building_visualizations: 'Building model visualizations...',
+            building_diagnostics: 'Calculating explainability diagnostics...',
+            generating_detailed_explanation: 'Generating the detailed explanation...',
+            generating_short_explanation: 'Generating the short explanation...',
+            finalizing: 'Finalizing the results...',
+            completed: 'Analysis completed.',
+            failed: 'The analysis was interrupted.'
+          },
+          details: {
+            epoch: 'Epoch {current} of {total}',
+            tree: 'Trees trained: {current} of {total}',
+            steps: 'Completed steps: {current} of {total}'
+          }
+        },
+        loadingText: 'Processing...',
+        imageHelp: 'Default image input: .npz file with x_train, y_train, x_test, y_test and class_names. This is better than CSV for MNIST because it preserves the 2D image structure.',
+        datasetInfo: {
+          autoAttached: 'Default dataset attached automatically: ',
+          manualSelected: 'Selected dataset: ',
+          loading: 'Attaching default dataset...',
+          failed: 'Could not attach the default dataset automatically. You can select it manually.'
+        },
+        datasetPreview: {
+          title: 'Dataset preview',
+          description: 'The first 10 rows are shown. Click a column header to choose what the model should predict.',
+          show: 'Preview dataset',
+          hide: 'Hide preview',
+          close: 'Close dataset preview',
+          download: 'Download attached dataset',
+          attached: 'Attached dataset',
+          rows: '{shown} of {total} rows',
+          columns: '{count} columns',
+          target: 'Target: {column}',
+          noTarget: 'Select a target column',
+          selectTarget: 'Select as target',
+          selectedTarget: 'Target selected',
+          loading: 'Reading the first rows of the dataset...',
+          empty: 'The CSV must contain a header and at least one data row.',
+          readError: 'The dataset preview could not be generated. Check whether the file is a valid CSV.',
+          imageMeta: 'NPZ image dataset · Preview unavailable'
+        },
+        objectiveSuggestions: {
+          text: [
+            'Classify sentiment in feedback',
+            'Detect toxicity in chats',
+            'Classify error logs by category',
+            'Detect spam in support tickets'
+          ],
+          numeric: [
+            'Predict memory usage',
+            'Estimate CPU consumption',
+            'Predict network throughput',
+            'Predict time to failure',
+            'Detect latency anomalies'
+          ],
+          image: [
+            'Classify handwritten digits from images',
+            'Explain which pixels influenced the predicted digit',
+            'Evaluate a CNN image classifier with SHAP'
+          ]
+        }
+      },
+      pt: {
+        htmlLang: 'pt-BR',
+        title: 'IMAT - Ferramenta de Análise de Modelos Interpretáveis',
+        description: 'Envie um CSV, escolha o modelo e visualize o processo de decisão.',
+        dataSplitInfo: 'Os dados são divididos em: treino (60%), validação (20%) e teste (20%)',
+        tabs: {
+          config: 'Configuração',
+          about: 'Sobre'
+        },
+        about: {
+          title: 'Sobre a IMAT',
+          intro: 'A IMAT permite carregar um arquivo CSV, configurar um modelo de Machine Learning e compreender seu comportamento por meio de métricas, diagnósticos de explicabilidade e explicações textuais.',
+          whatTitle: 'O que a ferramenta faz',
+          whatList: [
+            'Carrega um dataset e adapta os campos conforme o modelo selecionado.',
+            'Permite definir o objetivo e o estilo de explicação para alinhar o texto final à intenção do usuário.',
+            'Exibe diagnósticos de explicabilidade, métricas e explicação textual.'
+          ],
+          modelsTitle: 'Modelos disponíveis',
+          modelsList: [
+            'MLP: rede neural densa configurada para regressão com variável alvo numérica.',
+            'Random Forest: conjunto de árvores configurado para regressão com variável alvo numérica.',
+            'CNN: pode operar com entrada textual para classificação binária ou com entrada numérica para regressão/classificação binária.'
+          ],
+          outputsTitle: 'O que você recebe ao final',
+          outputsList: [
+            'Métricas de teste adequadas à tarefa escolhida.',
+            'Diagnósticos como importância de features, matriz de confusão, curva de loss, diagrama de confiabilidade e saliência da CNN quando aplicável.',
+            'Uma explicação textual alinhada ao estilo selecionado.'
+          ],
+          tipsTitle: 'Boas práticas',
+          tipsList: [
+            'Use um dataset compatível com o modelo e a tarefa selecionados.',
+            'Escolha a variável alvo com cuidado, pois ela define o que o modelo irá prever.',
+            'Use os tooltips para entender cada parâmetro antes de executar a análise.'
+          ]
+        },
+        labels: {
+          language: 'Idioma:',
+          objective: 'O objetivo é:',
+          explanationStyle: 'Estilo de explicação:',
+          explanationCustom: 'Descreva seu estilo (opcional):',
+          file: 'Selecione o arquivo CSV:',
+          chooseModel: 'Escolha o modelo:',
+          layers: 'Camadas (valores separados por vírgula):',
+          activation: 'Função de ativação:',
+          optimizer: 'Otimizador:',
+          loss: 'Função de perda:',
+          epochs: 'Épocas:',
+          batch_size: 'Tamanho do batch:',
+          seed_mlp: 'Semente aleatória:',
+          n_estimators: 'n_estimators:',
+          max_depth: 'max_depth (opcional):',
+          seed_rf: 'Semente aleatória (opcional):',
+          cnn_input_type: 'Tipo de entrada:',
+          text_column: 'Coluna de texto:',
+          vocab_size: 'Tamanho do vocabulário:',
+          maxlen: 'Tamanho máximo:',
+          threshold: 'Limite de decisão (0..1):',
+          cnn_task: 'Tarefa:',
+          threshold_num: 'Limite de decisão (0..1):',
+          embed_dim: 'Dim. do embedding:',
+          filters: 'Filtros Conv1D:',
+          kernel_size: 'Tamanho do kernel:',
+          dense_units: 'Unidades densas:',
+          epochs_cnn: 'Épocas:',
+          batch_size_cnn: 'Tamanho do batch:',
+          seed_cnn: 'Semente aleatória:'
+        },
+        options: {
+          language_en: 'Inglês',
+          language_pt: 'Português',
+          model_mlp: 'MLP',
+          model_rf: 'Random Forest (Regressão)',
+          model_cnn: 'CNN',
+          cnn_text: 'Texto (binário)',
+          cnn_numeric: 'Numérico',
+          cnn_image: 'Imagem (.npz)',
+          task_regression: 'Regressão',
+          task_binary: 'Classificação binária',
+          ex_prompts: {
+            exec_summary: 'Executivo – linguagem não técnica',
+            ops_admin: 'Operacional – ações objetivas',
+            datasci_tech: 'Data Science – análise técnica',
+            education_student: 'Instrutivo – passo a passo (aluno)',
+            custom: 'Estilo próprio (descrever abaixo)'
+          }
+        },
+        promptDescs: {
+          exec_summary: 'Resumo claro para decisão: o que o modelo considerou, quão confiável está e próximos passos.',
+          ops_admin: 'Orientação prática para operar ou ajustar: o que monitorar, sinais de problema e correções comuns.',
+          datasci_tech: 'Enfoque técnico: dados, validação, métricas, viés e melhorias de modelagem.',
+          education_student: 'Didático, passo a passo: conceitos, etapas e exemplos.',
+          custom: 'Descreva o tom e o estilo desejados no campo abaixo.'
+        },
+        modelDescs: {
+          mlp: 'Rede neural densa para regressão com alvo numérico.',
+          rf: 'Conjunto de árvores para regressão com alvo numérico.',
+          cnn: 'Rede convolucional para texto ou dados numéricos, conforme a tarefa.'
+        },
+        selectedDescs: {
+          cnn_input_type: {
+            text: 'O modo texto espera uma coluna textual e uma variável alvo binária.',
+            numeric: 'O modo numérico espera atributos numéricos e uma variável alvo compatível com a tarefa escolhida.'
+          },
+          cnn_task: {
+            regression: 'Use quando a saída for um valor numérico contínuo.',
+            binary: 'Use quando a saída representar duas classes possíveis.'
+          }
+        },
+        tooltips: {
+          file: 'Carrega o dataset usado no treinamento e teste. CSV é usado para dados tabulares/texto; .npz é usado para imagens.',
+          objective: 'Descreve o que você deseja analisar, prever ou compreender. Esse campo orienta a explicação textual final.',
+          explanationStyle: 'Define o tom e o formato da explicação textual final.',
+          explanationCustom: 'Use este campo apenas quando "Estilo próprio" estiver selecionado para descrever tom, nível de detalhe ou foco.',
+          chooseModel: 'Define qual modelo será utilizado na análise.',
+          layers: 'Define a estrutura das camadas ocultas do MLP usando quantidades de neurônios separadas por vírgula.',
+          activation: 'Define a função aplicada aos neurônios ocultos para introduzir não linearidade.',
+          optimizer: 'Define o algoritmo usado para ajustar os pesos da rede durante o treinamento.',
+          loss: 'Define como o erro do treinamento será calculado.',
+          epochs: 'Define quantas vezes o modelo percorrerá todo o conjunto de treinamento.',
+          batch_size: 'Define quantas amostras são processadas antes de cada atualização dos pesos.',
+          seed_mlp: 'Controla a aleatoriedade para tornar os experimentos mais reproduzíveis.',
+          n_estimators: 'Define quantas árvores compõem a floresta.',
+          max_depth: 'Profundidade máxima opcional de cada árvore. Profundidades maiores podem sobreajustar; menores podem perder padrões.',
+          seed_rf: 'Controla a aleatoriedade da construção das árvores para maior reprodutibilidade.',
+          cnn_input_type: 'Define se a CNN processará texto, dados numéricos ou imagens e altera os campos complementares.',
+          text_column: 'Coluna do CSV que contém o texto processado pela CNN.',
+          vocab_size: 'Define quantos tokens distintos a CNN textual irá considerar.',
+          maxlen: 'Define o comprimento máximo das sequências tokenizadas. Textos maiores podem ser truncados.',
+          threshold: 'Valor de corte usado para transformar a probabilidade prevista em classe final.',
+          cnn_task: 'Define se a CNN numérica resolverá regressão ou classificação binária.',
+          threshold_num: 'Só é relevante para classificação binária. Define o ponto de corte da classe final.',
+          embed_dim: 'Define o tamanho da representação vetorial interna usada pela CNN, especialmente em texto.',
+          filters: 'Define quantos filtros convolucionais serão usados para capturar padrões locais.',
+          kernel_size: 'Define o tamanho da janela observada por cada filtro convolucional.',
+          dense_units: 'Define a quantidade de neurônios da camada densa final após a convolução.',
+          epochs_cnn: 'Define quantas vezes a CNN percorrerá o conjunto de treinamento.',
+          batch_size_cnn: 'Define quantas amostras são processadas antes de cada atualização dos parâmetros da CNN.',
+          seed_cnn: 'Controla a aleatoriedade do treinamento e ajuda a reproduzir o experimento.'
+        },
+        optionTooltips: {
+          'model-select': {
+            mlp: 'Rede neural densa usada para regressão com alvo numérico.',
+            rf: 'Conjunto robusto de árvores de decisão para regressão.',
+            cnn: 'Modelo convolucional para texto ou dados numéricos.'
+          },
+          ex_prompt: {
+            exec_summary: 'Explicação simples e acessível para públicos não técnicos.',
+            ops_admin: 'Explicação prática com foco em observações, alertas e ações.',
+            datasci_tech: 'Explicação técnica com mais profundidade sobre métricas e comportamento do modelo.',
+            education_student: 'Explicação didática em formato passo a passo.',
+            custom: 'Permite ao usuário descrever o tom e o foco desejados.'
+          },
+          activation: {
+            relu: 'Mantém valores positivos e zera valores negativos.',
+            sigmoid: 'Transforma os valores para uma escala entre 0 e 1.',
+            tanh: 'Transforma os valores para uma escala entre -1 e 1.'
+          },
+          optimizer: {
+            adam: 'Otimizador muito usado por combinar eficiência e boa adaptação.',
+            rmsprop: 'Otimizador bastante utilizado em contextos de redes neurais.'
+          },
+          loss: {
+            mse: 'Erro quadrático médio. Penaliza mais fortemente erros grandes.',
+            mae: 'Erro absoluto médio. Mede a média do erro absoluto.'
+          },
+          cnn_input_type: {
+            text: 'Use quando o dataset possui uma coluna textual, como mensagens ou descrições.',
+            numeric: 'Use quando os dados de entrada são compostos por colunas numéricas.'
+          },
+          cnn_task: {
+            regression: 'Use quando a saída for um valor numérico.',
+            binary: 'Use quando a saída representar duas classes possíveis.'
+          }
+        },
+        placeholders: {
+          objective: 'ex.: Prever o consumo de memória',
+          ex_prompt_custom: 'Ex.: “Explique como se fosse para um time de produto: foco em trade-offs, riscos e próximos passos práticos.”'
+        },
+        buttons: {
+          upload: 'Executar',
+          clear: 'Limpar',
+          summarized: 'Fluxograma resumido',
+          detailed: 'Fluxograma detalhado',
+          downloadSummarized: 'Baixar resumido',
+          downloadDetailed: 'Baixar detalhado'
+        },
+        headings: {
+          modelExplanation: 'Explicação do modelo',
+          explainability: 'Diagnósticos de explicabilidade'
+        },
+        explanationModes: {
+          title: 'Escolha o modo de explicação',
+          note: 'A curta é objetiva e sem gráficos; a detalhada usa os diagnósticos como apoio visual.',
+          shortButton: 'Curta',
+          longButton: 'Detalhada',
+          shortKicker: 'Modo curto'
+        },
+        explainabilityUI: {
+          viewGraph: 'Abrir gráfico',
+          hideGraph: 'Ocultar gráfico',
+          openImage: 'Abrir imagem',
+          supportLabel: 'Apoio visual',
+          additionalSupportLabel: 'Outros apoios visuais',
+          complementaryTitle: 'Gráficos complementares',
+          complementaryNote: 'Esses diagnósticos foram gerados para o modelo, mas não foram ligados diretamente a um parágrafo específico.'
+        },
+        metrics: {
+          accuracy: 'Acurácia',
+          precision: 'Precisão',
+          recall: 'Revocação',
+          f1: 'F1',
+          auc: 'AUC',
+          mae: 'Erro Absoluto Médio (MAE)',
+          mse: 'Erro Quadrático Médio (MSE)',
+          rmse: 'Raiz do Erro Quadrático Médio (RMSE)',
+          r2: 'Coeficiente de Determinação (R²)'
+        },
+        alerts: {
+          select_csv: 'Selecione um arquivo de dataset.',
+          select_target: 'Selecione a coluna alvo diretamente na prévia do dataset antes de executar o modelo.',
+          generic_error: 'Ocorreu um erro. Verifique a resposta do servidor.'
+        },
+        languageChange: {
+          title: 'Alterar idioma?',
+          message: 'A alteração do idioma exige o recarregamento da página. Os dados não salvos do formulário e os resultados atuais serão apagados. Deseja continuar?',
+          continue: 'Continuar',
+          cancel: 'Cancelar'
+        },
+        browserTip: {
+          buttonLabel: 'Dica de compatibilidade do navegador',
+          title: 'Compatibilidade do navegador',
+          message: 'Está enfrentando dificuldades para usar a IMAT neste navegador? Para uma melhor experiência, tente abrir a ferramenta no Mozilla Firefox.',
+          close: 'Fechar'
+        },
+        progress: {
+          note: 'O progresso avança somente quando uma etapa de processamento ou iteração de treinamento é concluída.',
+          elapsed: 'Tempo decorrido',
+          stages: {
+            starting: 'Iniciando a análise...',
+            reading_data: 'Lendo e validando o dataset...',
+            preparing_data: 'Preparando os dados e parâmetros...',
+            building_model: 'Construindo o modelo...',
+            training_epochs: 'Treinando o modelo...',
+            training_trees: 'Treinando o Random Forest...',
+            evaluating: 'Avaliando o modelo treinado...',
+            building_visualizations: 'Construindo as visualizações do modelo...',
+            building_diagnostics: 'Calculando os diagnósticos de explicabilidade...',
+            generating_detailed_explanation: 'Gerando a explicação detalhada...',
+            generating_short_explanation: 'Gerando a explicação curta...',
+            finalizing: 'Finalizando os resultados...',
+            completed: 'Análise concluída.',
+            failed: 'A análise foi interrompida.'
+          },
+          details: {
+            epoch: 'Época {current} de {total}',
+            tree: 'Árvores treinadas: {current} de {total}',
+            steps: 'Etapas concluídas: {current} de {total}'
+          }
+        },
+        loadingText: 'Processando...',
+        imageHelp: 'Entrada padrão de imagem: arquivo .npz com x_train, y_train, x_test, y_test e class_names. Isso é melhor que CSV para MNIST porque preserva a estrutura 2D da imagem.',
+        datasetInfo: {
+          autoAttached: 'Dataset padrão anexado automaticamente: ',
+          manualSelected: 'Dataset selecionado: ',
+          loading: 'Anexando dataset padrão...',
+          failed: 'Não foi possível anexar automaticamente o dataset padrão. Você pode selecioná-lo manualmente.'
+        },
+        datasetPreview: {
+          title: 'Prévia do dataset',
+          description: 'As 10 primeiras linhas são exibidas. Clique no cabeçalho de uma coluna para definir o que o modelo deve prever.',
+          show: 'Visualizar dataset',
+          hide: 'Ocultar prévia',
+          close: 'Fechar prévia do dataset',
+          download: 'Baixar dataset anexado',
+          attached: 'Dataset anexado',
+          rows: '{shown} de {total} linhas',
+          columns: '{count} colunas',
+          target: 'Alvo: {column}',
+          noTarget: 'Selecione uma coluna alvo',
+          selectTarget: 'Selecionar como alvo',
+          selectedTarget: 'Alvo selecionado',
+          loading: 'Lendo as primeiras linhas do dataset...',
+          empty: 'O CSV deve conter um cabeçalho e pelo menos uma linha de dados.',
+          readError: 'Não foi possível gerar a prévia. Verifique se o arquivo é um CSV válido.',
+          imageMeta: 'Dataset de imagens NPZ · Prévia indisponível'
+        },
+        objectiveSuggestions: {
+          text: [
+            'Classificar sentimento em feedbacks',
+            'Detectar toxicidade em chats',
+            'Classificar logs de erro por categoria',
+            'Detectar spam em tickets de suporte'
+          ],
+          numeric: [
+            'Prever o consumo de memória',
+            'Estimar consumo de CPU',
+            'Prever throughput de rede',
+            'Prever tempo até falha',
+            'Detectar anomalias de latência'
+          ],
+          image: [
+            'Classificar dígitos manuscritos a partir de imagens',
+            'Explicar quais pixels influenciaram o dígito previsto',
+            'Avaliar uma CNN de imagens com SHAP'
+          ]
+        }
+      }
+    };
+
+    const TOOLTIP_TARGETS = {
+      'label-file': 'file',
+      'label-objective': 'objective',
+      'label-explanation-style': 'explanationStyle',
+      'label-explanation-custom': 'explanationCustom',
+      'label-choose-model': 'chooseModel',
+      'label-layers': 'layers',
+      'label-activation': 'activation',
+      'label-optimizer': 'optimizer',
+      'label-loss': 'loss',
+      'label-epochs': 'epochs',
+      'label-batch_size': 'batch_size',
+      'label-seed-mlp': 'seed_mlp',
+      'label-n_estimators': 'n_estimators',
+      'label-max_depth': 'max_depth',
+      'label-seed-rf': 'seed_rf',
+      'label-cnn-input-type': 'cnn_input_type',
+      'label-text-column': 'text_column',
+      'label-vocab_size': 'vocab_size',
+      'label-maxlen': 'maxlen',
+      'label-threshold': 'threshold',
+      'label-cnn-task': 'cnn_task',
+      'label-threshold-num': 'threshold_num',
+      'label-embed_dim': 'embed_dim',
+      'label-filters': 'filters',
+      'label-kernel_size': 'kernel_size',
+      'label-dense_units': 'dense_units',
+      'label-epochs-cnn': 'epochs_cnn',
+      'label-batch_size-cnn': 'batch_size_cnn',
+      'label-seed-cnn': 'seed_cnn'
+    };
+
+    const CHIP_TARGETS = {
+      'model-select': 'model-select',
+      'ex_prompt': 'ex_prompt',
+      'activation': 'activation',
+      'optimizer': 'optimizer',
+      'loss': 'loss',
+      'cnn_input_type': 'cnn_input_type',
+      'cnn_task': 'cnn_task'
+    };
+
+    const MODEL_PRESETS = {
+      mlp: {
+        dataset: 'software_aging_imat.csv',
+        objective: {
+          pt: 'Prever o uso de memória',
+          en: 'Predict memory usage'
+        },
+        ex_prompt: 'exec_summary',
+        layers: '48,24,12',
+        activation: 'relu',
+        optimizer: 'adam',
+        loss: 'mse',
+        epochs: '20',
+        batch_size: '16',
+        seed: '42',
+        target_variable: 'Memory_Usage'
+      },
+      rf: {
+        dataset: 'stock_market_imat.csv',
+        objective: {
+          pt: 'Prever o preço de fechamento do próximo dia',
+          en: 'Predict the next day closing price'
+        },
+        ex_prompt: 'datasci_tech',
+        target_variable: 'Close_tomorrow',
+        n_estimators: '100',
+        max_depth: '4',
+        seed: '42'
+      },
+      cnn: {
+        dataset: 'mnist_imat_sample.npz',
+        objective: {
+          pt: 'Classificar dígitos manuscritos a partir de imagens no estilo MNIST',
+          en: 'Classify handwritten digits from MNIST-like images'
+        },
+        ex_prompt: 'datasci_tech',
+        input_type: 'image',
+        target_variable: '',
+        task: 'multiclass',
+        threshold: '0.5',
+        embed_dim: '50',
+        filters: '16',
+        kernel_size: '3',
+        dense_units: '32',
+        epochs: '3',
+        batch_size: '32',
+        seed: '42'
+      }
+    };
+
+    let lastAutoAttachedDataset = '';
+    let previousCnnInputType = 'image';
+
+    function t(path) {
+      const lang = document.getElementById('language-switch').value || 'pt';
+      const segs = path.split('.');
+      let cur = I18N[lang];
+      for (const s of segs) cur = cur?.[s];
+      return cur ?? '';
+    }
+
+    const modelSelect = document.getElementById('model-select');
+    const mlpFields = document.getElementById('mlp-fields');
+    const rfFields = document.getElementById('rf-fields');
+    const cnnFields = document.getElementById('cnn-fields');
+    const objectiveDL = document.getElementById('objective_suggestions');
+    const langSwitch = document.getElementById('language-switch');
+
+    function getInitialLanguage() {
+      const queryLanguage = new URLSearchParams(window.location.search).get('lang');
+      if (queryLanguage === 'en' || queryLanguage === 'pt') {
+        try {
+          window.sessionStorage.setItem('imat-language', queryLanguage);
+        } catch (error) {
+          console.debug('Language preference could not be stored.', error);
+        }
+        return queryLanguage;
+      }
+
+      try {
+        const savedLanguage = window.sessionStorage.getItem('imat-language');
+        if (savedLanguage === 'en' || savedLanguage === 'pt') {
+          return savedLanguage;
+        }
+      } catch (error) {
+        console.debug('Language preference could not be read.', error);
+      }
+
+      return langSwitch.value || 'en';
+    }
+
+    let activeLanguage = getInitialLanguage();
+    let pendingLanguage = null;
+    langSwitch.value = activeLanguage;
+
+    const cnnInputType = document.getElementById('cnn_input_type');
+    const cnnTextFields = document.getElementById('cnn-text-fields');
+    const cnnNumFields = document.getElementById('cnn-numeric-fields');
+    const cnnImageFields = document.getElementById('cnn-image-fields');
+    const cnnTask = document.getElementById('cnn_task');
+    const cnnThresWrap = document.getElementById('cnn-threshold-wrap');
+
+    const exPrompt = document.getElementById('ex_prompt');
+    const exPromptDesc = document.getElementById('ex_prompt_desc');
+    const exPromptCustom = document.getElementById('ex_prompt_custom');
+    const exPromptCustomLabel = document.getElementById('label-explanation-custom');
+    const modelDesc = document.getElementById('model_desc');
+    const cnnInputTypeDesc = document.getElementById('cnn_input_type_desc');
+    const cnnTaskDesc = document.getElementById('cnn_task_desc');
+    const defaultDatasetInfo = document.getElementById('default-dataset-info');
+    const fileInput = document.getElementById('file');
+    const datasetFileCard = document.getElementById('dataset-file-card');
+    const datasetFileName = document.getElementById('dataset-file-name');
+    const datasetFileMeta = document.getElementById('dataset-file-meta');
+    const datasetPreviewButton = document.getElementById('dataset-preview-button');
+    const datasetPreviewButtonText = document.getElementById('dataset-preview-button-text');
+    const datasetDownloadButton = document.getElementById('dataset-download-button');
+    const datasetPreviewPanel = document.getElementById('dataset-preview-panel');
+    const datasetPreviewTitle = document.getElementById('dataset-preview-title');
+    const datasetPreviewDescription = document.getElementById('dataset-preview-description');
+    const datasetPreviewClose = document.getElementById('dataset-preview-close');
+    const datasetPreviewRows = document.getElementById('dataset-preview-rows');
+    const datasetPreviewColumns = document.getElementById('dataset-preview-columns');
+    const datasetTargetSummary = document.getElementById('dataset-target-summary');
+    const datasetTableWrap = document.getElementById('dataset-table-wrap');
+    const datasetPreviewTable = document.getElementById('dataset-preview-table');
+    const datasetPreviewMessage = document.getElementById('dataset-preview-message');
+    const trainingModal = document.getElementById('training-modal');
+    const trainingModalText = document.getElementById('training-modal-text');
+    const trainingProgressTrack = document.getElementById('training-progress-track');
+    const trainingProgressBar = document.getElementById('training-progress-bar');
+    const trainingProgressPercent = document.getElementById('training-progress-percent');
+    const trainingProgressElapsed = document.getElementById('training-progress-elapsed');
+    const trainingProgressDetail = document.getElementById('training-progress-detail');
+    const trainingProgressNote = document.getElementById('training-progress-note');
+
+    const languageConfirmModal = document.getElementById('language-confirm-modal');
+    const languageConfirmTitle = document.getElementById('language-confirm-title');
+    const languageConfirmMessage = document.getElementById('language-confirm-message');
+    const languageCancelButton = document.getElementById('language-cancel-button');
+    const languageContinueButton = document.getElementById('language-continue-button');
+
+    const browserHelpButton = document.getElementById('browser-help-button');
+    const browserTipModal = document.getElementById('browser-tip-modal');
+    const browserTipTitle = document.getElementById('browser-tip-title');
+    const browserTipMessage = document.getElementById('browser-tip-message');
+    const browserTipCloseButton = document.getElementById('browser-tip-close-button');
+
+    let progressPollTimer = null;
+    let progressElapsedTimer = null;
+    let progressStartedAt = 0;
+    let progressPollInFlight = false;
+    let lastDisplayedProgress = 0;
+    const modelResultCache = {
+      mlp: null,
+      rf: null,
+      cnn: null
+    };
+    let datasetAttachmentRequestId = 0;
+    let datasetPreviewRequestId = 0;
+    let datasetPreviewState = {
+      file: null,
+      headers: [],
+      rows: [],
+      totalRows: 0,
+      loading: false,
+      error: ''
+    };
+
+
+    function getCurrentPreset() {
+      return MODEL_PRESETS[modelSelect.value] || MODEL_PRESETS.mlp;
+    }
+
+    function updateDatasetInfo(message, mode = 'auto') {
+      if (!defaultDatasetInfo) return;
+      defaultDatasetInfo.textContent = message || '';
+      defaultDatasetInfo.dataset.mode = mode;
+    }
+
+    function formatTemplate(template, values = {}) {
+      return String(template || '').replace(/\{(\w+)\}/g, (_, key) => {
+        return Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : '';
+      });
+    }
+
+    function formatFileSize(bytes) {
+      const size = Number(bytes) || 0;
+      if (size < 1024) return `${size} B`;
+      if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+      return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function isImageDatasetMode() {
+      return modelSelect.value === 'cnn' && cnnInputType.value === 'image';
+    }
+
+    function isNpzFile(file) {
+      return Boolean(file?.name?.toLowerCase().endsWith('.npz'));
+    }
+
+    function datasetSupportsPreview(file = datasetPreviewState.file) {
+      return Boolean(file) && !isImageDatasetMode() && !isNpzFile(file);
+    }
+
+    function getCurrentTargetInput() {
+      if (modelSelect.value === 'mlp') return document.getElementById('target_variable_mlp');
+      if (modelSelect.value === 'rf') return document.getElementById('target_variable_rf');
+      if (modelSelect.value !== 'cnn' || cnnInputType.value === 'image') return null;
+      return document.getElementById(
+        cnnInputType.value === 'text' ? 'target_variable_cnn' : 'target_variable_cnn_num'
+      );
+    }
+
+    function getCurrentTargetValue() {
+      return getCurrentTargetInput()?.value || '';
+    }
+
+    function updateDatasetInputAccept() {
+      fileInput.accept = isImageDatasetMode()
+        ? '.npz,application/octet-stream'
+        : '.csv,text/csv';
+    }
+
+    function parseCsvDataset(text) {
+      const records = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
+
+      const pushRow = () => {
+        row.push(cell);
+        cell = '';
+        if (row.some(value => value !== '') || records.length === 0) {
+          records.push(row);
+        }
+        row = [];
+      };
+
+      for (let index = 0; index < text.length; index += 1) {
+        const character = text[index];
+
+        if (inQuotes) {
+          if (character === '"') {
+            if (text[index + 1] === '"') {
+              cell += '"';
+              index += 1;
+            } else {
+              inQuotes = false;
+            }
+          } else {
+            cell += character;
+          }
+          continue;
+        }
+
+        if (character === '"') {
+          inQuotes = true;
+        } else if (character === ',') {
+          row.push(cell);
+          cell = '';
+        } else if (character === '\n' || character === '\r') {
+          pushRow();
+          if (character === '\r' && text[index + 1] === '\n') index += 1;
+        } else {
+          cell += character;
+        }
+      }
+
+      if (inQuotes) throw new Error('Unclosed quoted CSV field.');
+      if (cell !== '' || row.length > 0) pushRow();
+      if (records.length === 0) return { headers: [], rows: [], totalRows: 0 };
+
+      const headers = records[0].map((header, index) => {
+        const value = String(header ?? '');
+        return index === 0 ? value.replace(/^\uFEFF/, '') : value;
+      });
+      const dataRows = records.slice(1).filter(record => record.some(value => value !== ''));
+
+      return {
+        headers,
+        rows: dataRows.slice(0, 10),
+        totalRows: dataRows.length
+      };
+    }
+
+    function setDatasetPreviewMessage(message = '', kind = '') {
+      datasetPreviewMessage.textContent = message;
+      datasetPreviewMessage.hidden = !message;
+      datasetPreviewMessage.classList.toggle('is-error', kind === 'error');
+      datasetPreviewMessage.classList.toggle('is-info', kind === 'info');
+    }
+
+    function updateDatasetActionTexts() {
+      const previewVisible = !datasetPreviewPanel.hidden;
+      datasetPreviewButtonText.textContent = t(`datasetPreview.${previewVisible ? 'hide' : 'show'}`);
+      datasetPreviewButton.setAttribute('aria-expanded', String(previewVisible));
+      datasetPreviewButton.setAttribute('aria-controls', 'dataset-preview-panel');
+      datasetDownloadButton.title = t('datasetPreview.download');
+      datasetDownloadButton.setAttribute('aria-label', t('datasetPreview.download'));
+      datasetPreviewClose.title = t('datasetPreview.close');
+      datasetPreviewClose.setAttribute('aria-label', t('datasetPreview.close'));
+    }
+
+    function updateDatasetFileCard() {
+      const file = datasetPreviewState.file;
+      datasetFileCard.hidden = !file;
+      datasetPreviewButton.hidden = !datasetSupportsPreview(file);
+
+      if (!file) {
+        datasetFileName.textContent = '';
+        datasetFileMeta.textContent = '';
+        updateDatasetActionTexts();
+        return;
+      }
+
+      datasetFileName.textContent = file.name;
+      datasetFileName.title = file.name;
+      const size = formatFileSize(file.size);
+      datasetFileMeta.textContent = (isNpzFile(file) || isImageDatasetMode())
+        ? `${t('datasetPreview.imageMeta')} · ${size}`
+        : `${t('datasetPreview.attached')} · CSV · ${size}`;
+      updateDatasetActionTexts();
+    }
+
+    function setDatasetPreviewOpen(open) {
+      const shouldOpen = Boolean(open) && datasetSupportsPreview();
+      datasetPreviewPanel.hidden = !shouldOpen;
+      updateDatasetActionTexts();
+    }
+
+    function renderDatasetPreview() {
+      const state = datasetPreviewState;
+      datasetPreviewTitle.textContent = t('datasetPreview.title');
+      datasetPreviewDescription.textContent = t('datasetPreview.description');
+      datasetPreviewTable.replaceChildren();
+
+      if (state.loading) {
+        datasetPreviewRows.hidden = true;
+        datasetPreviewColumns.hidden = true;
+        datasetTargetSummary.hidden = true;
+        datasetTableWrap.hidden = true;
+        setDatasetPreviewMessage(t('datasetPreview.loading'), 'info');
+        updateDatasetFileCard();
+        return;
+      }
+
+      if (state.error) {
+        datasetPreviewRows.hidden = true;
+        datasetPreviewColumns.hidden = true;
+        datasetTargetSummary.hidden = true;
+        datasetTableWrap.hidden = true;
+        setDatasetPreviewMessage(state.error, 'error');
+        updateDatasetFileCard();
+        return;
+      }
+
+      if (!state.headers.length || !state.totalRows) {
+        datasetPreviewRows.hidden = true;
+        datasetPreviewColumns.hidden = true;
+        datasetTargetSummary.hidden = true;
+        datasetTableWrap.hidden = true;
+        setDatasetPreviewMessage(t('datasetPreview.empty'), 'error');
+        updateDatasetFileCard();
+        return;
+      }
+
+      setDatasetPreviewMessage();
+      datasetPreviewRows.hidden = false;
+      datasetPreviewColumns.hidden = false;
+      datasetTargetSummary.hidden = false;
+      datasetTableWrap.hidden = false;
+      datasetPreviewRows.textContent = formatTemplate(t('datasetPreview.rows'), {
+        shown: state.rows.length,
+        total: state.totalRows
+      });
+      datasetPreviewColumns.textContent = formatTemplate(t('datasetPreview.columns'), {
+        count: state.headers.length
+      });
+
+      const selectedTarget = getCurrentTargetValue();
+      datasetTargetSummary.textContent = selectedTarget
+        ? formatTemplate(t('datasetPreview.target'), { column: selectedTarget })
+        : t('datasetPreview.noTarget');
+      datasetTargetSummary.dataset.empty = String(!selectedTarget);
+
+      const head = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      const rowNumberHeader = document.createElement('th');
+      rowNumberHeader.className = 'dataset-row-number';
+      rowNumberHeader.scope = 'col';
+      rowNumberHeader.textContent = '#';
+      headerRow.appendChild(rowNumberHeader);
+
+      state.headers.forEach((header, columnIndex) => {
+        const th = document.createElement('th');
+        th.scope = 'col';
+        const button = document.createElement('button');
+        const isSelected = Boolean(header) && header === selectedTarget;
+        button.type = 'button';
+        button.className = `dataset-target-column-button${isSelected ? ' is-selected' : ''}`;
+        button.disabled = !header;
+        button.setAttribute('role', 'radio');
+        button.setAttribute('aria-checked', String(isSelected));
+        button.setAttribute('aria-label', header
+          ? `${header}: ${t(isSelected ? 'datasetPreview.selectedTarget' : 'datasetPreview.selectTarget')}`
+          : `Column ${columnIndex + 1}`);
+
+        const name = document.createElement('span');
+        name.className = 'dataset-column-name';
+        name.textContent = header || `Column ${columnIndex + 1}`;
+        name.title = header || name.textContent;
+
+        const action = document.createElement('span');
+        action.className = 'dataset-column-action';
+        action.textContent = t(isSelected ? 'datasetPreview.selectedTarget' : 'datasetPreview.selectTarget');
+
+        button.append(name, action);
+        button.addEventListener('click', () => {
+          const targetInput = getCurrentTargetInput();
+          if (!targetInput || !header) return;
+          targetInput.value = header;
+          renderDatasetPreview();
+        });
+        th.appendChild(button);
+        headerRow.appendChild(th);
+      });
+
+      head.appendChild(headerRow);
+      datasetPreviewTable.appendChild(head);
+
+      const body = document.createElement('tbody');
+      state.rows.forEach((record, rowIndex) => {
+        const tr = document.createElement('tr');
+        const rowNumber = document.createElement('td');
+        rowNumber.className = 'dataset-row-number';
+        rowNumber.textContent = String(rowIndex + 1);
+        tr.appendChild(rowNumber);
+
+        state.headers.forEach((header, columnIndex) => {
+          const td = document.createElement('td');
+          const value = String(record[columnIndex] ?? '');
+          td.textContent = value;
+          td.title = value;
+          td.classList.toggle('is-target-column', Boolean(selectedTarget) && header === selectedTarget);
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      datasetPreviewTable.appendChild(body);
+      updateDatasetFileCard();
+    }
+
+    function clearDatasetUi() {
+      datasetPreviewRequestId += 1;
+      datasetPreviewState = {
+        file: null,
+        headers: [],
+        rows: [],
+        totalRows: 0,
+        loading: false,
+        error: ''
+      };
+      datasetPreviewTable.replaceChildren();
+      setDatasetPreviewMessage();
+      setDatasetPreviewOpen(false);
+      updateDatasetFileCard();
+    }
+
+    async function setActiveDatasetFile(file, options = {}) {
+      if (!file) {
+        clearDatasetUi();
+        return;
+      }
+
+      const requestId = ++datasetPreviewRequestId;
+      const targetInput = getCurrentTargetInput();
+      if (options.resetTarget && targetInput) targetInput.value = '';
+
+      datasetPreviewState = {
+        file,
+        headers: [],
+        rows: [],
+        totalRows: 0,
+        loading: false,
+        error: ''
+      };
+      updateDatasetFileCard();
+
+      if (!datasetSupportsPreview(file)) {
+        setDatasetPreviewOpen(false);
+        return;
+      }
+
+      datasetPreviewState.loading = true;
+      setDatasetPreviewOpen(options.openPreview !== false);
+      renderDatasetPreview();
+
+      try {
+        const parsed = parseCsvDataset(await file.text());
+        if (requestId !== datasetPreviewRequestId) return;
+
+        const preferredTarget = options.preferredTarget || '';
+        const currentTarget = getCurrentTargetValue();
+        const targetCandidate = preferredTarget || currentTarget;
+        const activeTargetInput = getCurrentTargetInput();
+        if (activeTargetInput) {
+          activeTargetInput.value = parsed.headers.includes(targetCandidate) ? targetCandidate : '';
+        }
+
+        datasetPreviewState = {
+          file,
+          ...parsed,
+          loading: false,
+          error: ''
+        };
+      } catch (error) {
+        if (requestId !== datasetPreviewRequestId) return;
+        console.error('Dataset preview failed:', error);
+        if (getCurrentTargetInput()) getCurrentTargetInput().value = '';
+        datasetPreviewState = {
+          file,
+          headers: [],
+          rows: [],
+          totalRows: 0,
+          loading: false,
+          error: t('datasetPreview.readError')
+        };
+      }
+
+      renderDatasetPreview();
+    }
+
+    function refreshDatasetUiText() {
+      updateDatasetInputAccept();
+      if (datasetPreviewState.file && datasetSupportsPreview()) {
+        renderDatasetPreview();
+      } else {
+        updateDatasetFileCard();
+      }
+    }
+
+    function downloadActiveDataset() {
+      const file = fileInput.files?.[0] || datasetPreviewState.file;
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name || 'dataset';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function attachDefaultDataset(filename) {
+      if (!filename) {
+        updateDatasetInfo('');
+        return false;
+      }
+
+      const attachmentRequestId = ++datasetAttachmentRequestId;
+      fileInput.value = '';
+      clearDatasetUi();
+      updateDatasetInfo(`${t('datasetInfo.loading')} ${filename}`, 'loading');
+
+      try {
+        const response = await fetch(`/static/datasets/${encodeURIComponent(filename)}`, {
+          cache: 'no-store'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        if (attachmentRequestId !== datasetAttachmentRequestId) return false;
+        const mimeType = filename.toLowerCase().endsWith('.npz') ? 'application/octet-stream' : 'text/csv';
+        const datasetFile = new File([blob], filename, { type: mimeType });
+        const transfer = new DataTransfer();
+        transfer.items.add(datasetFile);
+        fileInput.files = transfer.files;
+        lastAutoAttachedDataset = filename;
+        updateDatasetInfo(`${t('datasetInfo.autoAttached')}${filename}`, 'auto');
+        await setActiveDatasetFile(datasetFile, {
+          openPreview: true,
+          preferredTarget: getCurrentTargetValue()
+        });
+        return true;
+      } catch (error) {
+        if (attachmentRequestId !== datasetAttachmentRequestId) return false;
+        console.error('Default dataset attachment failed:', error);
+        lastAutoAttachedDataset = '';
+        fileInput.value = '';
+        clearDatasetUi();
+        updateDatasetInfo(`${t('datasetInfo.failed')} (${filename})`, 'error');
+        return false;
+      }
+    }
+
+    function clearCnnInputFieldsAfterImageExit() {
+      const ids = [
+        'text_column', 'target_variable_cnn', 'vocab_size', 'maxlen', 'threshold',
+        'target_variable_cnn_num', 'threshold_num', 'embed_dim', 'filters',
+        'kernel_size', 'dense_units', 'epochs_cnn', 'batch_size_cnn', 'seed_cnn'
+      ];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('objective').value = '';
+      fileInput.value = '';
+      lastAutoAttachedDataset = '';
+      updateDatasetInfo('');
+      clearDatasetUi();
+      updateDatasetInputAccept();
+    }
+
+    async function restoreCnnImageDefaults() {
+      fillPresetFields('cnn');
+      updateDatasetInputAccept();
+      await attachDefaultDataset(MODEL_PRESETS.cnn.dataset);
+      updateRequired();
+      setObjectiveSuggestions();
+      refreshCnnModeDesc();
+      refreshCnnTaskDesc();
+      renderAllChoiceChips();
+    }
+
+    function fillPresetFields(modelKey) {
+      const preset = MODEL_PRESETS[modelKey];
+      if (!preset) return;
+
+      const lang = (langSwitch.value || 'pt').startsWith('en') ? 'en' : 'pt';
+
+      document.getElementById('objective').value = preset.objective?.[lang] || preset.objective?.pt || '';
+      document.getElementById('ex_prompt').value = preset.ex_prompt || 'exec_summary';
+      document.getElementById('ex_prompt_custom').value = '';
+
+      if (modelKey === 'mlp') {
+        document.getElementById('layers').value = preset.layers || '';
+        document.getElementById('activation').value = preset.activation || 'relu';
+        document.getElementById('optimizer').value = preset.optimizer || 'adam';
+        document.getElementById('loss').value = preset.loss || 'mse';
+        document.getElementById('epochs').value = preset.epochs || '';
+        document.getElementById('batch_size').value = preset.batch_size || '';
+        document.getElementById('seed_mlp').value = preset.seed || '';
+        document.getElementById('target_variable_mlp').value = preset.target_variable || '';
+      }
+
+      if (modelKey === 'rf') {
+        document.getElementById('target_variable_rf').value = preset.target_variable || '';
+        document.getElementById('n_estimators').value = preset.n_estimators || '';
+        document.getElementById('max_depth').value = preset.max_depth || '';
+        document.getElementById('seed_rf').value = preset.seed || '';
+      }
+
+      if (modelKey === 'cnn') {
+        const presetInputType = preset.input_type || 'numeric';
+        const presetTask = preset.task || 'binary';
+
+        document.getElementById('cnn_input_type').value = presetInputType;
+        document.getElementById('target_variable_cnn_num').value = preset.target_variable || '';
+        document.getElementById('cnn_task').value = presetTask;
+        document.getElementById('threshold_num').value = preset.threshold || '0.5';
+        document.getElementById('embed_dim').value = preset.embed_dim || '50';
+        document.getElementById('filters').value = preset.filters || '32';
+        document.getElementById('kernel_size').value = preset.kernel_size || '3';
+        document.getElementById('dense_units').value = preset.dense_units || '10';
+        document.getElementById('epochs_cnn').value = preset.epochs || '';
+        document.getElementById('batch_size_cnn').value = preset.batch_size || '';
+        document.getElementById('seed_cnn').value = preset.seed || '';
+
+        const isText = presetInputType === 'text';
+        const isImage = presetInputType === 'image';
+        cnnTextFields.style.display = isText ? 'block' : 'none';
+        cnnNumFields.style.display = (!isText && !isImage) ? 'block' : 'none';
+        cnnImageFields.style.display = isImage ? 'block' : 'none';
+        cnnThresWrap.style.display = (!isText && !isImage && presetTask === 'binary') ? 'block' : 'none';
+        previousCnnInputType = presetInputType;
+      }
+
+      refreshPromptDesc();
+      refreshCnnModeDesc();
+      refreshCnnTaskDesc();
+      renderAllChoiceChips();
+      updateRequired();
+      setObjectiveSuggestions();
+    }
+
+    async function applyPresetForCurrentModel() {
+      const preset = getCurrentPreset();
+      fillPresetFields(modelSelect.value);
+      updateDatasetInputAccept();
+      await attachDefaultDataset(preset.dataset);
+    }
+
+    function closeTooltipPopovers(exceptBadge = null) {
+      document.querySelectorAll('.tooltip-badge.open').forEach(badge => {
+        if (exceptBadge && badge === exceptBadge) return;
+        badge.classList.remove('open');
+        badge.setAttribute('aria-expanded', 'false');
+        const popover = badge.querySelector('.tooltip-popover');
+        if (popover) popover.hidden = true;
+      });
+    }
+
+    function toggleTooltipPopover(badge) {
+      if (!badge) return;
+      const popover = badge.querySelector('.tooltip-popover');
+      if (!popover) return;
+
+      const isOpen = badge.classList.contains('open');
+      if (isOpen) {
+        closeTooltipPopovers();
+        return;
+      }
+
+      closeTooltipPopovers(badge);
+      badge.classList.add('open');
+      badge.setAttribute('aria-expanded', 'true');
+      popover.hidden = false;
+    }
+
+    function ensureTooltipBadges() {
+      Object.entries(TOOLTIP_TARGETS).forEach(([labelId, key]) => {
+        const label = document.getElementById(labelId);
+        if (!label || !label.parentElement) return;
+
+        let badge = label.parentElement.querySelector(`.tooltip-badge[data-key="${key}"]`);
+        if (!badge) {
+          badge = document.createElement('button');
+          badge.type = 'button';
+          badge.className = 'tooltip-badge';
+          badge.dataset.key = key;
+          badge.textContent = '?';
+          badge.setAttribute('aria-expanded', 'false');
+
+          const popover = document.createElement('span');
+          popover.className = 'tooltip-popover';
+          popover.hidden = true;
+          badge.appendChild(popover);
+
+          badge.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleTooltipPopover(badge);
+          });
+
+          badge.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              toggleTooltipPopover(badge);
+            } else if (event.key === 'Escape') {
+              closeTooltipPopovers();
+            }
+          });
+
+          label.parentElement.appendChild(badge);
+        }
+
+        const tip = t(`tooltips.${key}`) || '';
+        const popover = badge.querySelector('.tooltip-popover');
+        if (popover) popover.textContent = tip;
+        badge.title = tip;
+        badge.setAttribute('aria-label', tip);
+        label.title = tip;
+      });
+    }
+
+    function renderChoiceChips(selectId) {
+      const selectEl = document.getElementById(selectId);
+      const defs = t(`optionTooltips.${CHIP_TARGETS[selectId]}`) || {};
+      const host = document.getElementById(`${selectId}-option-chips`);
+      if (!selectEl || !host) return;
+
+      host.innerHTML = '';
+      Array.from(selectEl.options).forEach(opt => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'choice-chip' + (opt.value === selectEl.value ? ' active' : '');
+        chip.textContent = opt.textContent;
+        chip.title = defs[opt.value] || opt.textContent;
+        chip.setAttribute('aria-label', defs[opt.value] || opt.textContent);
+        chip.setAttribute('aria-pressed', String(opt.value === selectEl.value));
+        chip.addEventListener('click', () => {
+          if (selectEl.value === opt.value) return;
+          selectEl.value = opt.value;
+          selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        host.appendChild(chip);
+        opt.title = defs[opt.value] || opt.textContent;
+      });
+    }
+
+    function renderAllChoiceChips() {
+      Object.keys(CHIP_TARGETS).forEach(renderChoiceChips);
+    }
+
+    function renderAboutSection() {
+      const about = t('about');
+      document.getElementById('about-title').textContent = about.title;
+      document.getElementById('about-intro').textContent = about.intro;
+      document.getElementById('about-what-title').textContent = about.whatTitle;
+      document.getElementById('about-models-title').textContent = about.modelsTitle;
+      document.getElementById('about-outputs-title').textContent = about.outputsTitle;
+      document.getElementById('about-tips-title').textContent = about.tipsTitle;
+      renderList('about-what-list', about.whatList || []);
+      renderList('about-models-list', about.modelsList || []);
+      renderList('about-outputs-list', about.outputsList || []);
+      renderList('about-tips-list', about.tipsList || []);
+    }
+
+    function renderList(id, items) {
+      const el = document.getElementById(id);
+      el.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+    }
+
+    function refreshPromptDesc() {
+      exPromptDesc.textContent = t(`promptDescs.${exPrompt.value}`) || '';
+      const showCustom = exPrompt.value === 'custom';
+      exPromptCustom.style.display = showCustom ? 'block' : 'none';
+      exPromptCustomLabel.style.display = showCustom ? 'inline' : 'none';
+      renderChoiceChips('ex_prompt');
+    }
+
+    exPrompt.addEventListener('change', refreshPromptDesc);
+
+    function refreshModelDesc() {
+      modelDesc.textContent = t(`modelDescs.${modelSelect.value}`) || '';
+      renderChoiceChips('model-select');
+    }
+
+    function refreshCnnModeDesc() {
+      cnnInputTypeDesc.textContent = t(`selectedDescs.cnn_input_type.${cnnInputType.value}`) || '';
+      renderChoiceChips('cnn_input_type');
+    }
+
+    function refreshCnnTaskDesc() {
+      cnnTaskDesc.textContent = t(`selectedDescs.cnn_task.${cnnTask.value}`) || '';
+      renderChoiceChips('cnn_task');
+    }
+
+    function setFieldsState(container, enabled) {
+      container.querySelectorAll('input, select, button, textarea').forEach(el => {
+        el.disabled = !enabled;
+      });
+    }
+
+    function setReq(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.required = value;
+    }
+
+    function updateRequired() {
+      document.querySelectorAll('input, select, textarea').forEach(el => el.required = false);
+      const model = modelSelect.value;
+
+      if (model === 'mlp') {
+        ['layers', 'epochs', 'batch_size'].forEach(id => setReq(id, true));
+      } else if (model === 'rf') {
+        ['n_estimators'].forEach(id => setReq(id, true));
+      } else if (model === 'cnn') {
+        const isText = cnnInputType.value === 'text';
+        const isImage = cnnInputType.value === 'image';
+        if (isText) {
+          ['text_column', 'vocab_size', 'maxlen', 'epochs_cnn', 'batch_size_cnn'].forEach(id => setReq(id, true));
+        } else if (isImage) {
+          ['epochs_cnn', 'batch_size_cnn'].forEach(id => setReq(id, true));
+        } else {
+          ['epochs_cnn', 'batch_size_cnn'].forEach(id => setReq(id, true));
+          if (cnnTask.value === 'binary') {
+            setReq('threshold_num', true);
+          }
+        }
+      }
+    }
+
+    function setObjectiveSuggestions() {
+      const lang = langSwitch.value;
+      const model = modelSelect.value;
+      const isText = model === 'cnn' && cnnInputType.value === 'text';
+      const isImage = model === 'cnn' && cnnInputType.value === 'image';
+      const opts = isText
+        ? I18N[lang].objectiveSuggestions.text
+        : (isImage ? I18N[lang].objectiveSuggestions.image : I18N[lang].objectiveSuggestions.numeric);
+
+      objectiveDL.innerHTML = opts.map(o => `<option value="${o}"></option>`).join('');
+    }
+
+    function applyI18n() {
+      const lang = langSwitch.value || 'pt';
+      const dict = I18N[lang];
+      document.documentElement.lang = dict.htmlLang;
+
+      document.getElementById('title').textContent = dict.title;
+      document.getElementById('description').textContent = dict.description;
+      document.getElementById('tab-btn-config').textContent = dict.tabs.config;
+      document.getElementById('tab-btn-about').textContent = dict.tabs.about;
+
+      document.getElementById('label-language').textContent = dict.labels.language;
+      langSwitch.querySelector('option[value="en"]').textContent = dict.options.language_en;
+      langSwitch.querySelector('option[value="pt"]').textContent = dict.options.language_pt;
+      document.getElementById('label-objective').textContent = dict.labels.objective;
+      document.getElementById('label-explanation-style').textContent = dict.labels.explanationStyle;
+      document.getElementById('data-split-info-text').textContent = dict.dataSplitInfo;
+      document.getElementById('label-explanation-custom').textContent = dict.labels.explanationCustom;
+      document.getElementById('label-file').textContent = dict.labels.file;
+      document.getElementById('label-choose-model').textContent = dict.labels.chooseModel;
+
+      document.getElementById('label-layers').textContent = dict.labels.layers;
+      document.getElementById('label-activation').textContent = dict.labels.activation;
+      document.getElementById('label-optimizer').textContent = dict.labels.optimizer;
+      document.getElementById('label-loss').textContent = dict.labels.loss;
+      document.getElementById('label-epochs').textContent = dict.labels.epochs;
+      document.getElementById('label-batch_size').textContent = dict.labels.batch_size;
+      document.getElementById('label-seed-mlp').textContent = dict.labels.seed_mlp;
+
+      document.getElementById('label-n_estimators').textContent = dict.labels.n_estimators;
+      document.getElementById('label-max_depth').textContent = dict.labels.max_depth;
+      document.getElementById('label-seed-rf').textContent = dict.labels.seed_rf;
+
+      document.getElementById('label-cnn-input-type').textContent = dict.labels.cnn_input_type;
+      document.getElementById('label-text-column').textContent = dict.labels.text_column;
+      document.getElementById('label-vocab_size').textContent = dict.labels.vocab_size;
+      document.getElementById('label-maxlen').textContent = dict.labels.maxlen;
+      document.getElementById('label-threshold').textContent = dict.labels.threshold;
+      document.getElementById('label-cnn-task').textContent = dict.labels.cnn_task;
+      document.getElementById('label-threshold-num').textContent = dict.labels.threshold_num;
+      document.getElementById('label-embed_dim').textContent = dict.labels.embed_dim;
+      document.getElementById('label-filters').textContent = dict.labels.filters;
+      document.getElementById('label-kernel_size').textContent = dict.labels.kernel_size;
+      document.getElementById('label-dense_units').textContent = dict.labels.dense_units;
+      document.getElementById('label-epochs-cnn').textContent = dict.labels.epochs_cnn;
+      document.getElementById('label-batch_size-cnn').textContent = dict.labels.batch_size_cnn;
+      document.getElementById('label-seed-cnn').textContent = dict.labels.seed_cnn;
+
+      modelSelect.querySelector('option[value="mlp"]').textContent = dict.options.model_mlp;
+      modelSelect.querySelector('option[value="rf"]').textContent = dict.options.model_rf;
+      modelSelect.querySelector('option[value="cnn"]').textContent = dict.options.model_cnn;
+
+      document.getElementById('opt-cnn-text').textContent = dict.options.cnn_text;
+      document.getElementById('opt-cnn-numeric').textContent = dict.options.cnn_numeric;
+      document.getElementById('opt-cnn-image').textContent = dict.options.cnn_image;
+      document.getElementById('opt-task-reg').textContent = dict.options.task_regression;
+      document.getElementById('opt-task-bin').textContent = dict.options.task_binary;
+
+      for (const opt of document.getElementById('ex_prompt').options) {
+        const key = opt.value;
+        if (dict.options.ex_prompts[key]) {
+          opt.textContent = dict.options.ex_prompts[key];
+        }
+      }
+
+      document.getElementById('objective').placeholder = dict.placeholders.objective;
+      document.getElementById('ex_prompt_custom').placeholder = dict.placeholders.ex_prompt_custom;
+
+      document.getElementById('upload-button').textContent = dict.buttons.upload;
+      document.getElementById('clear-button').textContent = dict.buttons.clear;
+      /*
+      BLOCO TEMPORARIAMENTE COMENTADO:
+      Atualização dos textos dos botões e imagens dos fluxogramas.
+      Para reativar no futuro, basta descomentar este trecho.
+
+      document.getElementById('summarizedButton').textContent = dict.buttons.summarized;
+      document.getElementById('detailedButton').textContent = dict.buttons.detailed;
+      document.getElementById('downloadSummarized').textContent = dict.buttons.downloadSummarized;
+      document.getElementById('downloadDetailed').textContent = dict.buttons.downloadDetailed;
+      */
+      document.getElementById('heading-model-explanation').textContent = dict.headings.modelExplanation;
+      document.getElementById('heading-explainability').textContent = dict.headings.explainability;
+      updateExplanationModeTexts();
+      document.getElementById('loading-text').textContent = dict.loadingText;
+      browserHelpButton.setAttribute('aria-label', dict.browserTip.buttonLabel);
+      browserHelpButton.title = dict.browserTip.buttonLabel;
+      browserTipTitle.textContent = dict.browserTip.title;
+      browserTipMessage.textContent = dict.browserTip.message;
+      browserTipCloseButton.textContent = dict.browserTip.close;
+      trainingProgressNote.textContent = dict.progress.note;
+      updateProgressElapsed();
+
+      /*
+      BLOCO TEMPORARIAMENTE COMENTADO:
+      Atualização dos atributos alt das imagens dos fluxogramas.
+      Para reativar no futuro, basta descomentar este trecho.
+
+      document.getElementById('summarized').alt = dict.buttons.summarized;
+      document.getElementById('detailed').alt = dict.buttons.detailed;
+      */
+
+      refreshPromptDesc();
+      refreshModelDesc();
+      refreshCnnModeDesc();
+      refreshCnnTaskDesc();
+      setObjectiveSuggestions();
+      renderAllChoiceChips();
+      ensureTooltipBadges();
+      renderAboutSection();
+      const imageHelp = document.getElementById('cnn-image-help');
+      if (imageHelp) imageHelp.textContent = dict.imageHelp || '';
+      refreshDatasetUiText();
+
+      if (lastAutoAttachedDataset) {
+        updateDatasetInfo(`${t('datasetInfo.autoAttached')}${lastAutoAttachedDataset}`, 'auto');
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function sanitizeExplanationHtml(html) {
+      const template = document.createElement('template');
+      template.innerHTML = html || '';
+      const allowed = new Set(['H3', 'H4', 'P', 'UL', 'OL', 'LI', 'STRONG', 'EM', 'BR']);
+
+      const sanitizeNode = node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return document.createTextNode(node.textContent || '');
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return document.createDocumentFragment();
+        }
+
+        if (!allowed.has(node.tagName)) {
+          const fragment = document.createDocumentFragment();
+          Array.from(node.childNodes).forEach(child => fragment.appendChild(sanitizeNode(child)));
+          return fragment;
+        }
+
+        const clean = document.createElement(node.tagName.toLowerCase());
+        Array.from(node.childNodes).forEach(child => clean.appendChild(sanitizeNode(child)));
+        return clean;
+      };
+
+      const wrapper = document.createElement('div');
+      Array.from(template.content.childNodes).forEach(child => wrapper.appendChild(sanitizeNode(child)));
+      return wrapper.innerHTML.trim();
+    }
+
+    function isExplanationHeading(line) {
+      const text = (line || '').trim();
+      if (!text) return false;
+      if (text.length > 70) return false;
+      const upper = text === text.toUpperCase() && /[A-ZÀ-ÖØ-Ý]/.test(text);
+      const colon = text.endsWith(':') && text.length < 55;
+      return upper || colon;
+    }
+
+    function formatPlainExplanation(text) {
+      const raw = String(text || '').replace(/\r/g, '').trim();
+      if (!raw) return '';
+
+      const blocks = raw.split(/\n\s*\n+/).map(block => block.trim()).filter(Boolean);
+      const parts = [];
+
+      for (const block of blocks) {
+        const lines = block.split(/\n+/).map(line => line.trim()).filter(Boolean);
+        if (!lines.length) continue;
+
+        const bulletLines = lines.filter(line => /^[-•*]\s+/.test(line));
+        const numberedLines = lines.filter(line => /^\d+[\.)]\s+/.test(line));
+
+        if (bulletLines.length === lines.length) {
+          const items = lines.map(line => `<li>${escapeHtml(line.replace(/^[-•*]\s+/, ''))}</li>`).join('');
+          parts.push(`<div class="exp-block"><ul>${items}</ul></div>`);
+          continue;
+        }
+
+        if (numberedLines.length === lines.length) {
+          const items = lines.map(line => `<li>${escapeHtml(line.replace(/^\d+[\.)]\s+/, ''))}</li>`).join('');
+          parts.push(`<div class="exp-block"><ol>${items}</ol></div>`);
+          continue;
+        }
+
+        if (isExplanationHeading(lines[0])) {
+          const heading = escapeHtml(lines[0].replace(/:$/, ''));
+          const rest = lines.slice(1);
+          let inner = `<h3>${heading}</h3>`;
+          if (rest.length) {
+            inner += `<p>${escapeHtml(rest.join(' '))}</p>`;
+          }
+          parts.push(`<div class="exp-block">${inner}</div>`);
+          continue;
+        }
+
+        parts.push(`<div class="exp-block"><p>${escapeHtml(lines.join(' '))}</p></div>`);
+      }
+
+      return parts.join('');
+    }
+
+    function renderExplanationContent(content) {
+      const explanationEl = document.getElementById('explanation');
+      const raw = String(content || '').trim();
+      if (!raw) {
+        explanationEl.innerHTML = '';
+        return;
+      }
+
+      const hasHtml = /<\/?(h3|h4|p|ul|ol|li|strong|em|br)\b/i.test(raw);
+      explanationEl.innerHTML = hasHtml
+        ? sanitizeExplanationHtml(raw)
+        : formatPlainExplanation(raw);
+    }
+
+    function normalizeArtifactKey(value, index) {
+      const base = String(value || `artifact_${index}`)
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return base || `artifact_${index}`;
+    }
+
+    function getExplainabilityItems(explainability) {
+      const items = (explainability && Array.isArray(explainability.items)) ? explainability.items : [];
+      return items
+        .filter(item => item && (item.image || item.description || item.title))
+        .map((item, index) => ({
+          ...item,
+          _safeKey: normalizeArtifactKey(item.key || item.title, index)
+        }));
+    }
+
+    function artifactKeywords(item) {
+      const key = String(item.key || '').toLowerCase();
+      const title = String(item.title || '').toLowerCase();
+      const kind = String(item.kind || '').toLowerCase();
+      const joined = `${key} ${title} ${kind}`;
+
+      if (joined.includes('rf_tree')) {
+        return ['árvore', 'árvores', 'tree', 'trees', 'ensemble', 'floresta', 'forest', 'mse', 'teste', 'test', 'treino', 'training'];
+      }
+
+      if (joined.includes('loss') || joined.includes('training_curve')) {
+        return ['loss', 'perda', 'treino', 'training', 'validação', 'validation', 'época', 'epoch', 'overfitting', 'underfitting', 'generalização', 'generalization'];
+      }
+
+      if (joined.includes('feature') || joined.includes('shap') || joined.includes('importance')) {
+        return ['shap', 'feature', 'features', 'variável', 'variáveis', 'atributo', 'atributos', 'importância', 'importance', 'permutation', 'permutação'];
+      }
+
+      if (joined.includes('confusion')) {
+        return ['matriz de confusão', 'confusion matrix', 'confusão', 'acertos', 'erros', 'falso positivo', 'falso negativo', 'verdadeiro positivo', 'verdadeiro negativo', 'threshold', 'limiar', 'classe', 'classificação', 'faixas', 'bands'];
+      }
+
+      if (joined.includes('reliability') || joined.includes('calibration')) {
+        return ['calibração', 'calibration', 'confiabilidade', 'reliability', 'probabilidade', 'probability', 'confiança', 'confidence'];
+      }
+
+      if (joined.includes('gradcam') || joined.includes('grad-cam') || joined.includes('saliency')) {
+        return ['grad-cam', 'gradcam', 'saliência', 'saliency', 'ativação', 'activation', 'cnn', 'posição', 'position', 'token'];
+      }
+
+      if (joined.includes('token')) {
+        return ['token', 'tokens', 'palavra', 'palavras', 'perturbação', 'perturbation', 'texto', 'text'];
+      }
+
+      return [title, key].filter(Boolean);
+    }
+
+    function blockTextScore(block, item) {
+      const text = (block.textContent || '').toLowerCase();
+      if (!text.trim()) return 0;
+      return artifactKeywords(item).reduce((score, keyword) => {
+        const k = String(keyword || '').toLowerCase().trim();
+        return k && text.includes(k) ? score + Math.max(1, Math.min(4, k.length / 6)) : score;
+      }, 0);
+    }
+
+    function explainabilitySummaryHtml(item) {
+      const summary = item.summary && typeof item.summary === 'object'
+        ? Object.entries(item.summary)
+            .filter(([key]) => key !== 'available')
+            .slice(0, 5)
+            .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(summarizeValue(value))}</li>`)
+            .join('')
+        : '';
+      return summary ? `<ul class="explainability-summary">${summary}</ul>` : '';
+    }
+
+    function explainabilityPanelHtml(item, panelId, buttonId) {
+      const title = escapeHtml(item.title || '');
+      const desc = escapeHtml(item.description || '');
+      const image = item.image
+        ? `<img src="data:image/png;base64,${item.image}" alt="${title}" onclick="openInNewTab(this.src)">`
+        : '';
+      const openLabel = escapeHtml(t('explainabilityUI.openImage') || 'Open image');
+      const imageAction = item.image
+        ? `<div class="card-actions"><button type="button" class="secondary-small-button" onclick="openInNewTab(this.closest('.explainability-inline-card').querySelector('img').src)">${openLabel}</button></div>`
+        : '';
+
+      return `
+        <div id="${panelId}" class="explainability-inline-panel" role="region" aria-labelledby="${buttonId}">
+          <article class="explainability-inline-card">
+            <h3>${title}</h3>
+            ${desc ? `<p>${desc}</p>` : ''}
+            ${explainabilitySummaryHtml(item)}
+            ${image}
+            ${imageAction}
+          </article>
+        </div>
+      `;
+    }
+
+    function graphToggleHtml(item, panelId, buttonId) {
+      const label = `${t('explainabilityUI.viewGraph') || 'Open chart'}: ${item.title || ''}`;
+      return `<button id="${buttonId}" type="button" class="graph-toggle" aria-expanded="false" aria-controls="${panelId}" onclick="toggleExplainabilityPanel('${panelId}', '${buttonId}')">${escapeHtml(label)}</button>`;
+    }
+
+    function getGraphAnchorCandidates(wrapper) {
+      const preferred = Array.from(wrapper.querySelectorAll('p, li'))
+        .filter(el => (el.textContent || '').trim().length >= 25);
+
+      if (preferred.length) return preferred;
+
+      return Array.from(wrapper.children)
+        .filter(el => (el.textContent || '').trim().length >= 25);
+    }
+
+    function graphInsertionTarget(target) {
+      if (!target) return null;
+      if (target.tagName && target.tagName.toLowerCase() === 'li') {
+        return target.closest('ul, ol') || target;
+      }
+      return target;
+    }
+
+    function ensureGraphReferenceRowAfter(target, labelKey = 'supportLabel') {
+      const insertionTarget = graphInsertionTarget(target);
+      if (!insertionTarget) return null;
+
+      const next = insertionTarget.nextElementSibling;
+      if (next && next.classList.contains('graph-reference-row')) {
+        return next;
+      }
+
+      const row = document.createElement('div');
+      row.className = 'graph-reference-row';
+      row.innerHTML = `<span class="graph-reference-label">${escapeHtml(t(`explainabilityUI.${labelKey}`) || 'Visual support')}:</span>`;
+      insertionTarget.insertAdjacentElement('afterend', row);
+      return row;
+    }
+
+    function insertPanelAfterReferenceRow(row, htmlFragment) {
+      let anchor = row;
+      while (anchor.nextElementSibling && anchor.nextElementSibling.classList.contains('explainability-inline-panel')) {
+        anchor = anchor.nextElementSibling;
+      }
+      anchor.insertAdjacentHTML('afterend', htmlFragment);
+    }
+
+    function attachGraphToText(target, item, targetIndex) {
+      const panelId = `graph-panel-${targetIndex}-${item._safeKey}`;
+      const buttonId = `graph-button-${targetIndex}-${item._safeKey}`;
+      const row = ensureGraphReferenceRowAfter(target);
+      if (!row) return;
+
+      row.insertAdjacentHTML('beforeend', graphToggleHtml(item, panelId, buttonId));
+      insertPanelAfterReferenceRow(row, explainabilityPanelHtml(item, panelId, buttonId));
+    }
+
+    function attachRemainingGraphs(wrapper, remaining) {
+      if (!remaining.length) return;
+
+      const anchors = getGraphAnchorCandidates(wrapper);
+      const anchor = anchors.length ? anchors[anchors.length - 1] : wrapper.lastElementChild;
+      if (!anchor) return;
+
+      const row = ensureGraphReferenceRowAfter(anchor, 'additionalSupportLabel');
+      if (!row) return;
+
+      remaining.forEach((item, index) => {
+        const panelId = `graph-panel-extra-${index}-${item._safeKey}`;
+        const buttonId = `graph-button-extra-${index}-${item._safeKey}`;
+        row.insertAdjacentHTML('beforeend', graphToggleHtml(item, panelId, buttonId));
+        insertPanelAfterReferenceRow(row, explainabilityPanelHtml(item, panelId, buttonId));
+      });
+    }
+
+    function attachInlineGraphReferences(explanationHtml, explainability) {
+      const items = getExplainabilityItems(explainability);
+      if (!items.length) return explanationHtml;
+
+      const source = document.createElement('div');
+      source.innerHTML = explanationHtml || '';
+
+      if (!Array.from(source.children).some(el => (el.textContent || '').trim()) && source.textContent.trim()) {
+        const p = document.createElement('p');
+        p.textContent = source.textContent.trim();
+        source.innerHTML = '';
+        source.appendChild(p);
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'interactive-explanation';
+      Array.from(source.childNodes).forEach(node => wrapper.appendChild(node.cloneNode(true)));
+
+      const candidates = getGraphAnchorCandidates(wrapper);
+      if (!candidates.length) return wrapper.outerHTML;
+
+      const used = new Set();
+      const targetUsage = new Map();
+      const maxGraphsPerAnchor = 2;
+
+      items.forEach(item => {
+        const ranked = candidates
+          .map((target, targetIndex) => ({
+            target,
+            targetIndex,
+            score: blockTextScore(target, item),
+            usage: targetUsage.get(targetIndex) || 0
+          }))
+          .filter(match => match.score > 0 && match.usage < maxGraphsPerAnchor)
+          .sort((a, b) => (b.score - a.score) || (a.usage - b.usage));
+
+        if (!ranked.length) return;
+
+        const selected = ranked[0];
+        attachGraphToText(selected.target, item, selected.targetIndex);
+        targetUsage.set(selected.targetIndex, selected.usage + 1);
+        used.add(item._safeKey);
+      });
+
+      attachRemainingGraphs(wrapper, items.filter(item => !used.has(item._safeKey)));
+      return wrapper.outerHTML;
+    }
+
+    function renderInteractiveExplanationContent(content, explainability) {
+      renderExplanationContent(content);
+      const explanationEl = document.getElementById('explanation');
+      explanationEl.innerHTML = attachInlineGraphReferences(explanationEl.innerHTML, explainability);
+
+      document.getElementById('explainability-grid').innerHTML = '';
+      document.getElementById('explainability-container').style.display = 'none';
+    }
+
+    function normalizeExplanationModes(data) {
+      const modes = data?.explanations || {};
+      return {
+        long: modes.long || data?.explanation || '',
+        short: modes.short || data?.short_explanation || ''
+      };
+    }
+
+    function normalizeShortExplanation(text) {
+      const raw = String(text || '')
+        .replace(/<\s*br\s*\/?>/gi, '\n')
+        .replace(/<\/\s*(p|li|div|section|h3|h4)\s*>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\r/g, '')
+        .trim();
+
+      const lines = raw
+        .split(/\n+/)
+        .map(line => line.replace(/^[\s•\-*\d.)]+/, '').replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+
+      const topics = [];
+      lines.forEach(line => {
+        if (topics.length >= 5) return;
+        const idx = line.indexOf(':');
+        if (idx > 0 && idx <= 48) {
+          const topic = line.slice(0, idx).trim();
+          const body = line.slice(idx + 1).trim();
+          if (topic && body) topics.push({ topic, body });
+        }
+      });
+
+      if (topics.length) return { topics: topics.slice(0, 5), fallbackText: '' };
+
+      let fallbackText = raw.replace(/\s+/g, ' ').trim();
+      if (fallbackText.length > 1500) {
+        const cut = fallbackText.slice(0, 1500).trimEnd();
+        const lastStop = Math.max(cut.lastIndexOf('.'), cut.lastIndexOf('!'), cut.lastIndexOf('?'));
+        fallbackText = (lastStop >= 1000 ? cut.slice(0, lastStop + 1) : cut.replace(/[ ,;:-]+$/, '') + '…').slice(0, 1500);
+      }
+      return { topics: [], fallbackText };
+    }
+
+    function renderShortExplanationContent(content) {
+      const shortEl = document.getElementById('short-explanation');
+      const normalized = normalizeShortExplanation(content);
+      const lang = langSwitch.value || 'pt';
+      const kicker = t('explanationModes.shortKicker') || (lang === 'en' ? 'Short mode' : 'Modo curto');
+
+      if (normalized.topics.length) {
+        const topicHtml = normalized.topics.map(item => `
+          <p class="short-topic"><strong>${escapeHtml(item.topic)}:</strong> ${escapeHtml(item.body)}</p>
+        `).join('');
+        shortEl.innerHTML = `
+          <span class="short-explanation-kicker">${escapeHtml(kicker)}</span>
+          <div class="short-topic-list">${topicHtml}</div>
+        `;
+        return;
+      }
+
+      shortEl.innerHTML = `
+        <span class="short-explanation-kicker">${escapeHtml(kicker)}</span>
+        <p>${escapeHtml(normalized.fallbackText || '—')}</p>
+      `;
+    }
+
+    function setExplanationMode(mode) {
+      const isShort = mode === 'short';
+      const shortPanel = document.getElementById('short-explanation');
+      const longPanel = document.getElementById('explanation');
+      const shortButton = document.getElementById('explanation-mode-short');
+      const longButton = document.getElementById('explanation-mode-long');
+
+      shortPanel.hidden = !isShort;
+      longPanel.hidden = isShort;
+
+      shortButton.classList.toggle('active', isShort);
+      longButton.classList.toggle('active', !isShort);
+      shortButton.setAttribute('aria-selected', String(isShort));
+      longButton.setAttribute('aria-selected', String(!isShort));
+    }
+
+    function updateExplanationModeTexts() {
+      const lang = langSwitch.value || 'pt';
+      const fallback = lang === 'en'
+        ? {
+            title: 'Choose the explanation mode',
+            note: 'The short version is objective and has no charts; the detailed version uses diagnostics as visual support.',
+            short: 'Short',
+            long: 'Detailed'
+          }
+        : {
+            title: 'Escolha o modo de explicação',
+            note: 'A curta é objetiva e sem gráficos; a detalhada usa os diagnósticos como apoio visual.',
+            short: 'Curta',
+            long: 'Detalhada'
+          };
+
+      document.getElementById('explanation-mode-title').textContent = t('explanationModes.title') || fallback.title;
+      document.getElementById('explanation-mode-note').textContent = t('explanationModes.note') || fallback.note;
+      document.getElementById('explanation-mode-short').textContent = t('explanationModes.shortButton') || fallback.short;
+      document.getElementById('explanation-mode-long').textContent = t('explanationModes.longButton') || fallback.long;
+    }
+
+    function renderExplanationModes(data, explainability) {
+      const modes = normalizeExplanationModes(data || {});
+      renderShortExplanationContent(modes.short);
+      renderInteractiveExplanationContent(modes.long, explainability);
+      updateExplanationModeTexts();
+      setExplanationMode('short');
+    }
+
+
+    function toggleExplainabilityPanel(panelId, buttonId) {
+      const panel = document.getElementById(panelId);
+      const button = document.getElementById(buttonId);
+      if (!panel || !button) return;
+
+      const isOpen = panel.classList.toggle('is-open');
+      button.setAttribute('aria-expanded', String(isOpen));
+      const title = button.textContent.replace(/^.*?:\s*/, '');
+      const base = isOpen ? (t('explainabilityUI.hideGraph') || 'Hide chart') : (t('explainabilityUI.viewGraph') || 'Open chart');
+      button.textContent = `${base}: ${title}`;
+    }
+
+    function toFixedSafe(v, d) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toFixed(d) : '—';
+    }
+
+    function hasMetricValue(value) {
+      if (value === null || value === undefined || value === '') return false;
+      const n = Number(value);
+      return Number.isFinite(n);
+    }
+
+    function renderMetrics(model, data) {
+      const metricsEl = document.getElementById('metrics');
+      const labels = t('metrics');
+      const orderedKeys = ['accuracy', 'precision', 'recall', 'f1', 'auc', 'mae', 'mse', 'rmse', 'r2'];
+
+      const rows = orderedKeys
+        .filter(key => Object.prototype.hasOwnProperty.call(data || {}, key) && hasMetricValue(data[key]))
+        .map(key => `<p>${escapeHtml(labels[key] || key)}: ${toFixedSafe(data[key], 2)}</p>`);
+
+      metricsEl.innerHTML = rows.length ? rows.join('') : '<p>—</p>';
+    }
+
+    function summarizeValue(value) {
+      if (value === null || value === undefined || value === '') return '—';
+      if (Array.isArray(value)) {
+        return value.slice(0, 3).map(item => {
+          if (item && typeof item === 'object') {
+            return Object.entries(item).slice(0, 2).map(([k, v]) => `${k}: ${summarizeValue(v)}`).join(', ');
+          }
+          return summarizeValue(item);
+        }).join(' | ');
+      }
+      if (typeof value === 'object') {
+        return Object.entries(value).slice(0, 3).map(([k, v]) => `${k}: ${summarizeValue(v)}`).join(' | ');
+      }
+      if (typeof value === 'number') return Number.isFinite(value) ? value.toFixed(2) : '—';
+      return String(value);
+    }
+
+    function renderExplainability(explainability) {
+      const container = document.getElementById('explainability-container');
+      const grid = document.getElementById('explainability-grid');
+      const items = (explainability && Array.isArray(explainability.items)) ? explainability.items : [];
+
+      if (!items.length) {
+        grid.innerHTML = '';
+        container.style.display = 'none';
+        return;
+      }
+
+      grid.innerHTML = items.map(item => {
+        const summary = item.summary && typeof item.summary === 'object'
+          ? Object.entries(item.summary)
+              .filter(([key]) => key !== 'available')
+              .slice(0, 5)
+              .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(summarizeValue(value))}</li>`)
+              .join('')
+          : '';
+
+        const image = item.image
+          ? `<img src="data:image/png;base64,${item.image}" alt="${escapeHtml(item.title || '')}" onclick="openInNewTab(this.src)">`
+          : '';
+
+        return `
+          <article class="explainability-card">
+            <h3>${escapeHtml(item.title || '')}</h3>
+            <p>${escapeHtml(item.description || '')}</p>
+            ${summary ? `<ul class="explainability-summary">${summary}</ul>` : ''}
+            ${image}
+          </article>
+        `;
+      }).join('');
+
+      container.style.display = 'block';
+    }
+
+    function toggleDropdown(id) {
+      const sBtn = document.getElementById('summarizedButton');
+      const dBtn = document.getElementById('detailedButton');
+      const sCont = document.getElementById('summarized-content');
+      const dCont = document.getElementById('detailed-content');
+
+      if (id === 'summarized-content') {
+        sBtn.classList.add('disabled');
+        dBtn.classList.remove('disabled');
+        sCont.style.display = 'block';
+        dCont.style.display = 'none';
+      } else {
+        sBtn.classList.remove('disabled');
+        dBtn.classList.add('disabled');
+        sCont.style.display = 'none';
+        dCont.style.display = 'block';
+      }
+    }
+
+    function openInNewTab(src) {
+      const win = window.open();
+      if (win) {
+        win.document.write(`<img src="${src}" style="max-width:100%">`);
+      }
+    }
+
+    function downloadImage(b64, fileName) {
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${b64}`;
+      link.download = fileName;
+      link.click();
+    }
+
+    function clearRenderedResults() {
+      document.getElementById('results').style.display = 'none';
+      /*
+      BLOCO TEMPORARIAMENTE COMENTADO:
+      Limpeza das imagens e containers dos fluxogramas.
+      Para reativar no futuro, basta descomentar este trecho.
+
+      document.getElementById('summarized').src = '';
+      document.getElementById('detailed').src = '';
+      document.getElementById('summarized-content').style.display = 'none';
+      document.getElementById('detailed-content').style.display = 'none';
+      */
+      document.getElementById('metrics').innerHTML = '';
+      document.getElementById('explainability-grid').innerHTML = '';
+      document.getElementById('explainability-container').style.display = 'none';
+      document.getElementById('explanation').innerHTML = '';
+      document.getElementById('short-explanation').innerHTML = '';
+      setExplanationMode('short');
+      document.getElementById('explanation-container').style.display = 'none';
+    }
+
+    function renderCachedModelResult(modelKey) {
+      clearRenderedResults();
+      const cachedResult = modelResultCache[modelKey];
+      if (!cachedResult) return false;
+
+      renderMetrics(modelKey, cachedResult.data);
+      renderExplanationModes(cachedResult.data, cachedResult.explainability);
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('explanation-container').style.display = 'block';
+      return true;
+    }
+
+    function storeModelResult(modelKey, data) {
+      modelResultCache[modelKey] = {
+        data,
+        explainability: data?.explainability || {}
+      };
+      renderCachedModelResult(modelKey);
+    }
+
+    function clearModelResultCache() {
+      Object.keys(modelResultCache).forEach(modelKey => {
+        modelResultCache[modelKey] = null;
+      });
+      clearRenderedResults();
+    }
+
+    function clearForm() {
+      datasetAttachmentRequestId += 1;
+      document.getElementById('uploadForm').reset();
+      clearDatasetUi();
+      cnnInputType.value = 'numeric';
+      cnnTextFields.style.display = 'none';
+      cnnNumFields.style.display = 'block';
+      cnnThresWrap.style.display = (cnnTask.value === 'binary') ? 'block' : 'none';
+      clearModelResultCache();
+      modelSelect.value = 'mlp';
+      applyI18n();
+      showTab('config');
+      modelSelect.dispatchEvent(new Event('change'));
+    }
+
+    function disableElements(disabled) {
+      document.querySelectorAll('input, select, button, textarea').forEach(el => {
+        el.disabled = disabled;
+      });
+    }
+
+    function createProgressId() {
+      if (window.crypto?.randomUUID) {
+        return window.crypto.randomUUID();
+      }
+      const randomPart = Math.random().toString(36).slice(2);
+      return `imat-${Date.now().toString(36)}-${randomPart}`;
+    }
+
+    function formatElapsedTime(elapsedMilliseconds) {
+      const totalSeconds = Math.max(0, Math.floor(elapsedMilliseconds / 1000));
+      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    }
+
+    function updateProgressElapsed() {
+      if (!trainingProgressElapsed) return;
+      const elapsed = progressStartedAt ? Date.now() - progressStartedAt : 0;
+      trainingProgressElapsed.textContent = `${t('progress.elapsed')}: ${formatElapsedTime(elapsed)}`;
+    }
+
+    function progressDetailText(payload) {
+      if (payload?.current === undefined || payload?.total === undefined) {
+        return '';
+      }
+
+      const detailKey = payload.unit === 'epoch'
+        ? 'epoch'
+        : (payload.unit === 'tree' ? 'tree' : 'steps');
+      const template = t(`progress.details.${detailKey}`);
+      return template
+        .replace('{current}', String(payload.current))
+        .replace('{total}', String(payload.total));
+    }
+
+    function updateTrainingProgress(payload = {}) {
+      const requestedPercent = Number(payload.percent);
+      const safePercent = Number.isFinite(requestedPercent)
+        ? Math.max(0, Math.min(100, Math.round(requestedPercent)))
+        : lastDisplayedProgress;
+      lastDisplayedProgress = Math.max(lastDisplayedProgress, safePercent);
+
+      const stage = payload.stage || 'starting';
+      const stageText = t(`progress.stages.${stage}`) || t('progress.stages.starting');
+      const isFailed = payload.status === 'failed' || stage === 'failed';
+      const detailText = progressDetailText(payload);
+
+      trainingModalText.textContent = stageText;
+      trainingProgressBar.style.width = `${lastDisplayedProgress}%`;
+      trainingProgressBar.classList.toggle('is-failed', isFailed);
+      trainingProgressPercent.textContent = `${lastDisplayedProgress}%`;
+      trainingProgressTrack.setAttribute('aria-valuenow', String(lastDisplayedProgress));
+      trainingProgressTrack.setAttribute('aria-valuetext', detailText ? `${stageText} ${detailText}` : stageText);
+      trainingProgressDetail.textContent = detailText;
+      updateProgressElapsed();
+    }
+
+    async function pollTrainingProgress(progressId) {
+      if (progressPollInFlight) return;
+      progressPollInFlight = true;
+
+      try {
+        const response = await fetch(`/training-progress/${encodeURIComponent(progressId)}`, {
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        updateTrainingProgress(payload);
+
+        if (payload.status === 'completed' || payload.status === 'failed') {
+          if (progressPollTimer) {
+            window.clearInterval(progressPollTimer);
+            progressPollTimer = null;
+          }
+        }
+      } catch (error) {
+        console.debug('Progress update temporarily unavailable.', error);
+      } finally {
+        progressPollInFlight = false;
+      }
+    }
+
+    function startTrainingProgress(progressId) {
+      if (progressPollTimer) window.clearInterval(progressPollTimer);
+      if (progressElapsedTimer) window.clearInterval(progressElapsedTimer);
+
+      progressStartedAt = Date.now();
+      progressPollInFlight = false;
+      lastDisplayedProgress = 0;
+      updateTrainingProgress({ percent: 0, stage: 'starting', status: 'pending' });
+
+      progressElapsedTimer = window.setInterval(updateProgressElapsed, 1000);
+      progressPollTimer = window.setInterval(() => pollTrainingProgress(progressId), 500);
+      pollTrainingProgress(progressId);
+    }
+
+    function stopTrainingProgress() {
+      if (progressPollTimer) window.clearInterval(progressPollTimer);
+      if (progressElapsedTimer) window.clearInterval(progressElapsedTimer);
+      progressPollTimer = null;
+      progressElapsedTimer = null;
+      progressPollInFlight = false;
+    }
+
+    function showTrainingModal(progressId) {
+      if (!trainingModal) return;
+      trainingModal.classList.add('is-visible');
+      trainingModal.setAttribute('aria-hidden', 'false');
+      startTrainingProgress(progressId);
+    }
+
+    function hideTrainingModal() {
+      stopTrainingProgress();
+      if (trainingModal) {
+        trainingModal.classList.remove('is-visible');
+        trainingModal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function showLanguageConfirmation(currentLanguage, nextLanguage) {
+      const dict = I18N[currentLanguage] || I18N.en;
+      pendingLanguage = nextLanguage;
+      languageConfirmTitle.textContent = dict.languageChange.title;
+      languageConfirmMessage.textContent = dict.languageChange.message;
+      languageCancelButton.textContent = dict.languageChange.cancel;
+      languageContinueButton.textContent = dict.languageChange.continue;
+      languageConfirmModal.classList.add('is-visible');
+      languageConfirmModal.setAttribute('aria-hidden', 'false');
+      languageCancelButton.focus();
+    }
+
+    function cancelLanguageChange() {
+      pendingLanguage = null;
+      langSwitch.value = activeLanguage;
+      languageConfirmModal.classList.remove('is-visible');
+      languageConfirmModal.setAttribute('aria-hidden', 'true');
+      langSwitch.focus();
+    }
+
+    function confirmLanguageChange() {
+      if (pendingLanguage !== 'en' && pendingLanguage !== 'pt') {
+        cancelLanguageChange();
+        return;
+      }
+
+      const nextLanguage = pendingLanguage;
+      try {
+        window.sessionStorage.setItem('imat-language', nextLanguage);
+      } catch (error) {
+        console.debug('Language preference could not be stored.', error);
+      }
+
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set('lang', nextLanguage);
+      window.location.assign(nextUrl.toString());
+    }
+
+    function showBrowserTip() {
+      const dict = I18N[activeLanguage] || I18N.en;
+      browserTipTitle.textContent = dict.browserTip.title;
+      browserTipMessage.textContent = dict.browserTip.message;
+      browserTipCloseButton.textContent = dict.browserTip.close;
+      browserTipModal.classList.add('is-visible');
+      browserTipModal.setAttribute('aria-hidden', 'false');
+      browserTipCloseButton.focus();
+    }
+
+    function hideBrowserTip() {
+      browserTipModal.classList.remove('is-visible');
+      browserTipModal.setAttribute('aria-hidden', 'true');
+      browserHelpButton.focus();
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+      document.querySelectorAll('.tab-section').forEach(section => {
+        section.classList.toggle('active', section.id === `tab-${tabName}`);
+      });
+    }
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      btn.addEventListener('click', () => showTab(btn.dataset.tab));
+    });
+
+    document.querySelectorAll('[data-explanation-mode]').forEach(btn => {
+      btn.addEventListener('click', () => setExplanationMode(btn.dataset.explanationMode));
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.tooltip-badge')) {
+        closeTooltipPopovers();
+      }
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        if (languageConfirmModal.classList.contains('is-visible')) {
+          cancelLanguageChange();
+          return;
+        }
+        if (browserTipModal.classList.contains('is-visible')) {
+          hideBrowserTip();
+          return;
+        }
+        closeTooltipPopovers();
+      }
+    });
+
+    languageCancelButton.addEventListener('click', cancelLanguageChange);
+    languageContinueButton.addEventListener('click', confirmLanguageChange);
+    browserHelpButton.addEventListener('click', showBrowserTip);
+    browserTipCloseButton.addEventListener('click', hideBrowserTip);
+    datasetPreviewButton.addEventListener('click', () => {
+      setDatasetPreviewOpen(datasetPreviewPanel.hidden);
+    });
+    datasetPreviewClose.addEventListener('click', () => setDatasetPreviewOpen(false));
+    datasetDownloadButton.addEventListener('click', downloadActiveDataset);
+
+    languageConfirmModal.addEventListener('click', event => {
+      if (event.target === languageConfirmModal) cancelLanguageChange();
+    });
+
+    browserTipModal.addEventListener('click', event => {
+      if (event.target === browserTipModal) hideBrowserTip();
+    });
+
+    setFieldsState(mlpFields, true);
+    setFieldsState(rfFields, false);
+    setFieldsState(cnnFields, false);
+    updateRequired();
+    applyI18n();
+
+    langSwitch.addEventListener('change', () => {
+      const nextLanguage = langSwitch.value;
+      if (nextLanguage === activeLanguage) return;
+      showLanguageConfirmation(activeLanguage, nextLanguage);
+    });
+
+    fileInput.addEventListener('change', async event => {
+      const selected = event.target.files?.[0];
+      if (selected) {
+        datasetAttachmentRequestId += 1;
+        lastAutoAttachedDataset = '';
+        updateDatasetInfo(`${t('datasetInfo.manualSelected')}${selected.name}`, 'manual');
+        await setActiveDatasetFile(selected, {
+          openPreview: true,
+          resetTarget: true
+        });
+      } else if (getCurrentPreset()?.dataset) {
+        await applyPresetForCurrentModel();
+      }
+    });
+
+    modelSelect.addEventListener('change', async () => {
+      const value = modelSelect.value;
+      renderCachedModelResult(value);
+
+      disableElements(true);
+      document.getElementById('loading').style.display = 'flex';
+
+      try {
+        if (value === 'mlp') {
+          mlpFields.style.display = 'block';
+          rfFields.style.display = 'none';
+          cnnFields.style.display = 'none';
+          setFieldsState(mlpFields, true);
+          setFieldsState(rfFields, false);
+          setFieldsState(cnnFields, false);
+        } else if (value === 'rf') {
+          mlpFields.style.display = 'none';
+          rfFields.style.display = 'block';
+          cnnFields.style.display = 'none';
+          setFieldsState(mlpFields, false);
+          setFieldsState(rfFields, true);
+          setFieldsState(cnnFields, false);
+        } else {
+          mlpFields.style.display = 'none';
+          rfFields.style.display = 'none';
+          cnnFields.style.display = 'block';
+          setFieldsState(mlpFields, false);
+          setFieldsState(rfFields, false);
+          setFieldsState(cnnFields, true);
+        }
+
+        updateRequired();
+        setObjectiveSuggestions();
+        refreshModelDesc();
+        renderAllChoiceChips();
+
+        await Promise.all([
+          applyPresetForCurrentModel(),
+          wait(2000)
+        ]);
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+        disableElements(false);
+      }
+    });
+
+    cnnInputType.addEventListener('change', async () => {
+      const nextType = cnnInputType.value;
+      const wasImage = previousCnnInputType === 'image';
+      const isText = nextType === 'text';
+      const isImage = nextType === 'image';
+
+      cnnTextFields.style.display = isText ? 'block' : 'none';
+      cnnNumFields.style.display = (!isText && !isImage) ? 'block' : 'none';
+      cnnImageFields.style.display = isImage ? 'block' : 'none';
+      cnnThresWrap.style.display = (!isText && !isImage && cnnTask.value === 'binary') ? 'block' : 'none';
+
+      if (wasImage && !isImage) {
+        clearCnnInputFieldsAfterImageExit();
+      } else if (!wasImage && isImage) {
+        disableElements(true);
+        document.getElementById('loading').style.display = 'flex';
+        try {
+          await Promise.all([restoreCnnImageDefaults(), wait(400)]);
+        } finally {
+          document.getElementById('loading').style.display = 'none';
+          disableElements(false);
+        }
+      }
+
+      previousCnnInputType = nextType;
+      refreshDatasetUiText();
+      updateRequired();
+      setObjectiveSuggestions();
+      refreshCnnModeDesc();
+    });
+
+    cnnTask.addEventListener('change', () => {
+      const show = cnnTask.value === 'binary' && cnnInputType.value !== 'image';
+      cnnThresWrap.style.display = show ? 'block' : 'none';
+      updateRequired();
+      refreshCnnTaskDesc();
+    });
+
+    document.getElementById('activation').addEventListener('change', () => renderChoiceChips('activation'));
+    document.getElementById('optimizer').addEventListener('change', () => renderChoiceChips('optimizer'));
+    document.getElementById('loss').addEventListener('change', () => renderChoiceChips('loss'));
+
+    document.getElementById('uploadForm').addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const formData = new FormData();
+      const fileEl = document.getElementById('file');
+
+      if (!fileEl.files[0]) {
+        alert(t('alerts.select_csv'));
+        return;
+      }
+
+      formData.append('file', fileEl.files[0]);
+      formData.append('ui_language', langSwitch.value || 'pt');
+      formData.append('ex_prompt', document.getElementById('ex_prompt').value);
+      formData.append('objective', document.getElementById('objective').value.trim());
+
+      const customTxt = document.getElementById('ex_prompt_custom').value.trim();
+      if (customTxt) {
+        formData.append('ex_prompt_custom', customTxt);
+      }
+
+      const model = modelSelect.value;
+      const requiresTarget = model !== 'cnn' || cnnInputType.value !== 'image';
+      const selectedTarget = getCurrentTargetValue();
+      const hasValidTarget = selectedTarget && datasetPreviewState.headers.includes(selectedTarget);
+      if (requiresTarget && !hasValidTarget) {
+        setDatasetPreviewOpen(true);
+        renderDatasetPreview();
+        alert(t('alerts.select_target'));
+        document.querySelector('.dataset-target-column-button:not(:disabled)')?.focus();
+        return;
+      }
+
+      let endpoint = '';
+
+      if (model === 'mlp') {
+        formData.append('algorithm', 'mlp');
+        formData.append('layers', document.getElementById('layers').value);
+        formData.append('activation', document.getElementById('activation').value);
+        formData.append('optimizer', document.getElementById('optimizer').value);
+        formData.append('loss', document.getElementById('loss').value);
+        formData.append('epochs', document.getElementById('epochs').value);
+        formData.append('batch_size', document.getElementById('batch_size').value);
+        formData.append('seed', document.getElementById('seed_mlp').value);
+        formData.append('target_variable', document.getElementById('target_variable_mlp').value);
+        endpoint = '/upload';
+      } else if (model === 'rf') {
+        formData.append('algorithm', 'rf');
+        formData.append('target_variable', document.getElementById('target_variable_rf').value);
+        formData.append('n_estimators', document.getElementById('n_estimators').value);
+
+        const maxDepth = document.getElementById('max_depth').value;
+        if (maxDepth) {
+          formData.append('max_depth', maxDepth);
+        }
+
+        formData.append('seed', document.getElementById('seed_rf').value);
+        endpoint = '/upload_rf';
+      } else {
+        formData.append('algorithm', 'cnn');
+        const inputType = cnnInputType.value;
+        formData.append('input_type', inputType);
+        formData.append('embed_dim', document.getElementById('embed_dim').value);
+        formData.append('filters', document.getElementById('filters').value);
+        formData.append('kernel_size', document.getElementById('kernel_size').value);
+        formData.append('dense_units', document.getElementById('dense_units').value);
+        formData.append('epochs', document.getElementById('epochs_cnn').value);
+        formData.append('batch_size', document.getElementById('batch_size_cnn').value);
+        formData.append('seed', document.getElementById('seed_cnn').value);
+
+        if (inputType === 'text') {
+          formData.append('text_column', document.getElementById('text_column').value);
+          formData.append('target_variable', document.getElementById('target_variable_cnn').value);
+          formData.append('vocab_size', document.getElementById('vocab_size').value);
+          formData.append('maxlen', document.getElementById('maxlen').value);
+          formData.append('threshold', document.getElementById('threshold').value || '0.5');
+        } else if (inputType === 'image') {
+          formData.append('task', 'multiclass');
+          formData.append('max_train_samples', document.getElementById('max_train_samples').value || '1200');
+          formData.append('max_test_samples', document.getElementById('max_test_samples').value || '300');
+        } else {
+          formData.append('target_variable', document.getElementById('target_variable_cnn_num').value);
+          formData.append('task', document.getElementById('cnn_task').value);
+
+          if (document.getElementById('cnn_task').value === 'binary') {
+            formData.append('threshold', document.getElementById('threshold_num').value || '0.5');
+          }
+        }
+
+        endpoint = '/upload_cnn';
+      }
+
+      const progressId = createProgressId();
+      const requestUrl = `${endpoint}?progress_id=${encodeURIComponent(progressId)}`;
+      disableElements(true);
+      clearRenderedResults();
+      showTrainingModal(progressId);
+
+      try {
+        const response = await fetch(requestUrl, {
+          method: 'POST',
+          headers: {
+            'X-UI-Language': langSwitch.value || 'pt'
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          updateTrainingProgress({
+            percent: lastDisplayedProgress,
+            stage: 'failed',
+            status: 'failed'
+          });
+          renderCachedModelResult(model);
+          alert(data.error || t('alerts.generic_error'));
+          return;
+        }
+
+        updateTrainingProgress({ percent: 100, stage: 'completed', status: 'completed' });
+
+        /*
+        BLOCO TEMPORARIAMENTE COMENTADO:
+        Exibição das imagens e ações dos fluxogramas.
+        Para reativar no futuro, basta descomentar este trecho.
+
+        document.getElementById('summarized').src = `data:image/png;base64,${data.summarized}`;
+        document.getElementById('detailed').src = `data:image/png;base64,${data.detailed}`;
+        */
+
+        storeModelResult(model, data);
+
+        /*
+        BLOCO TEMPORARIAMENTE COMENTADO:
+        Abertura padrão e downloads dos fluxogramas.
+        Para reativar no futuro, basta descomentar este trecho.
+
+        toggleDropdown('summarized-content');
+
+        document.getElementById('downloadSummarized').onclick = () => {
+          downloadImage(data.summarized, 'summarized_flowchart.png');
+        };
+
+        document.getElementById('downloadDetailed').onclick = () => {
+          downloadImage(data.detailed, 'detailed_flowchart.png');
+        };
+        */
+      } catch (error) {
+        console.error('Error:', error);
+        updateTrainingProgress({
+          percent: lastDisplayedProgress,
+          stage: 'failed',
+          status: 'failed'
+        });
+        renderCachedModelResult(model);
+        alert(t('alerts.generic_error'));
+      } finally {
+        hideTrainingModal();
+        disableElements(false);
+      }
+    });
+
+    applyPresetForCurrentModel();
+  </script>
+</body>
+</html>
