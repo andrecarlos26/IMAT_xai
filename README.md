@@ -182,7 +182,6 @@ Run commands from the directory containing `app.py`.
 **Linux / macOS:**
 
 ```bash
-cd "imat 4.5"
 python3.10 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -191,7 +190,6 @@ python -m pip install --upgrade pip
 **Windows PowerShell:**
 
 ```powershell
-cd "imat 4.5"
 py -3.10 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
