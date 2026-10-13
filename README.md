@@ -11,7 +11,7 @@ The bundled examples demonstrate memory usage prediction, next-day closing price
 ```text
 .
 ├── app.py                              # Flask application and analysis endpoints
-├── requirements_new.txt                # Dependency snapshot included in the archive
+├── requirements.txt                    # Dependency snapshot included in the archive
 ├── paths.txt                           # Original deployment notes
 ├── model_analysis_module/
 │   ├── models.py                       # MLP construction and intermediate outputs
